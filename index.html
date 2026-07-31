@@ -699,9 +699,11 @@ html[data-theme="dark"] {
   </div>
 </section>
 
-<section class="section card fade-in">
+<main id="main-content">
+<section class="section card fade-in" role="region" aria-label="טופס הוספת פנייה חדשה">
+  <h1>TicketIQ - ניהול פניות לקוחות</h1>
   <h2>הוסף פנייה חדשה</h2>
-  <form id="ticketForm" onsubmit="handleSubmit(event)">
+  <form id="ticketForm" onsubmit="handleSubmit(event)" aria-label="טופס יצירת פנייה חדשה">
     <div class="grid-2">
       <div>
         <label for="customer">שם הלקוח</label>
@@ -1339,7 +1341,15 @@ function showToast(msg, type = 'info') {
   const toast = document.createElement('div');
   toast.className = `toast toast-${type}`;
   toast.textContent = msg;
+  toast.setAttribute('role', 'alert');
+  toast.setAttribute('aria-live', 'polite');
   document.body.appendChild(toast);
+
+  // Announce to screen readers
+  if (window.TicketIQAccessibility?.announceToScreenReader) {
+    window.TicketIQAccessibility.announceToScreenReader(msg);
+  }
+
   setTimeout(() => toast.remove(), 3000);
 }
 
@@ -1389,6 +1399,11 @@ if (document.readyState === 'loading') {
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+
+<!-- Accessibility Features -->
+<script src="accessibility.js" defer></script>
+
+</main>
 
 </body>
 </html>
