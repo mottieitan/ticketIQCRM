@@ -792,6 +792,7 @@ html[data-theme="dark"] {
         <option value="סגור">סגור</option>
       </select>
       <button class="btn btn-sm btn-primary" onclick="applyBulkStatusUpdate()">עדכן סטטוס</button>
+      <button class="btn btn-sm btn-danger" onclick="applyBulkDelete()">🗑️ מחק</button>
       <button class="btn btn-sm btn-secondary" onclick="clearBulkSelection()">נקה בחירה</button>
     </div>
     <div class="tickets-table-wrapper">
@@ -1504,6 +1505,75 @@ async function confirmBulkUpdate(newStatus) {
   } catch (err) {
     console.error('🔴 Bulk update error:', err.message);
     showToast('❌ שגיאה בעדכון: ' + err.message, 'error');
+  }
+}
+
+async function applyBulkDelete() {
+  const selectedCheckboxes = document.querySelectorAll('.ticket-checkbox:checked');
+
+  if (selectedCheckboxes.length === 0) {
+    showToast('❌ בחר פניות למחיקה', 'error');
+    return;
+  }
+
+  // Confirmation
+  const confirmModal = document.createElement('div');
+  confirmModal.className = 'modal-overlay active';
+  confirmModal.innerHTML = `
+    <div class="modal" style="max-width: 500px; text-align: center;">
+      <h3 style="color: #e11d48; margin-bottom: 1rem;">⚠️ אישור מחיקה</h3>
+      <p style="font-size: 1.1rem; margin-bottom: 1.5rem;">
+        האם אתה בטוח שברצונך למחוק <strong>${selectedCheckboxes.length} פניות</strong>?
+      </p>
+      <p style="color: var(--text-light); font-size: 0.9rem; margin-bottom: 1.5rem;">
+        פעולה זו לא ניתנת לשחזור. הנתונים יימחקו לצמיתות.
+      </p>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <button class="btn btn-secondary" onclick="this.closest('.modal-overlay').remove()">
+          ❌ בטל
+        </button>
+        <button class="btn btn-danger" onclick="confirmBulkDelete(); this.closest('.modal-overlay').remove();">
+          🗑️ אישור מחיקה
+        </button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(confirmModal);
+  confirmModal.addEventListener('click', (e) => {
+    if (e.target === confirmModal) confirmModal.remove();
+  });
+}
+
+async function confirmBulkDelete() {
+  try {
+    if (!db) {
+      showToast('❌ חיבור לשרת לא זמין', 'error');
+      return;
+    }
+
+    const selectedCheckboxes = document.querySelectorAll('.ticket-checkbox:checked');
+    const ticketIds = Array.from(selectedCheckboxes).map(cb => parseInt(cb.dataset.ticketId));
+
+    if (ticketIds.length === 0) return;
+
+    console.log('🗑️ Deleting', ticketIds.length, 'tickets');
+
+    // Delete all selected tickets
+    const { error } = await db
+      .from('tickets')
+      .delete()
+      .in('id', ticketIds);
+
+    if (error) throw new Error(error.message);
+
+    showToast(`✅ ${ticketIds.length} פניות נמחקו בהצלחה`, 'success');
+    clearBulkSelection();
+    setTimeout(() => loadTickets(), 500);
+
+  } catch (err) {
+    console.error('🔴 Bulk delete error:', err.message);
+    showToast('❌ שגיאה במחיקה: ' + err.message, 'error');
   }
 }
 
