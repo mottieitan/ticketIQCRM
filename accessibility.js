@@ -179,8 +179,15 @@
     menu.className = 'accessibility-menu hidden';
     menu.setAttribute('role', 'menu');
     menu.innerHTML = `
-      <button type="button" role="menuitem" class="a11y-menu-item" data-action="textsize" aria-label="הגדל גודל טקסט">
-        🔤 הגדל טקסט
+      <div class="a11y-submenu hidden" id="textsize-submenu">
+        <button type="button" role="menuitem" class="a11y-size-option" data-size="0" aria-label="גודל טקסט 100%">100%</button>
+        <button type="button" role="menuitem" class="a11y-size-option" data-size="1" aria-label="גודל טקסט 125%">125%</button>
+        <button type="button" role="menuitem" class="a11y-size-option" data-size="2" aria-label="גודל טקסט 150%">150%</button>
+        <button type="button" role="menuitem" class="a11y-size-option" data-size="3" aria-label="גודל טקסט 175%">175%</button>
+        <button type="button" role="menuitem" class="a11y-size-option" data-size="4" aria-label="גודל טקסט 200%">200%</button>
+      </div>
+      <button type="button" role="menuitem" class="a11y-menu-item" data-action="textsize" aria-label="בחר גודל טקסט">
+        🔤 גודל טקסט
       </button>
       <button type="button" role="menuitem" class="a11y-menu-item" data-action="contrast" aria-label="הפעל קונטרסט גבוה">
         🎨 קונטרסט גבוה
@@ -203,16 +210,42 @@
       console.log('🔘 Accessibility menu toggled:', !isHidden ? 'opened' : 'closed');
     });
 
-    // Menu item actions
+    // Text size submenu toggle
+    const textSizeBtn = menu.querySelector('[data-action="textsize"]');
+    const textSizeSubmenu = menu.querySelector('#textsize-submenu');
+
+    textSizeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      textSizeSubmenu.classList.toggle('hidden');
+      console.log('🔤 Text size submenu toggled');
+    });
+
+    // Size options
+    menu.querySelectorAll('.a11y-size-option').forEach(option => {
+      option.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const size = parseInt(option.dataset.size);
+        const sizes = ['100%', '125%', '150%', '175%', '200%'];
+        window.textSizeLevel = size;
+        const html = document.documentElement;
+        html.setAttribute('data-font-scale', size);
+        localStorage.setItem('fontScale', size);
+        window.TicketIQAccessibility?.announceToScreenReader(`גודל טקסט ${sizes[size]}`);
+        textSizeSubmenu.classList.add('hidden');
+        console.log('✅ Font size set to', sizes[size]);
+      });
+    });
+
+    // Other menu item actions
     menu.querySelectorAll('.a11y-menu-item').forEach(item => {
-      item.addEventListener('click', () => {
+      item.addEventListener('click', (e) => {
         const action = item.dataset.action;
+        if (action === 'textsize') return; // Handled by submenu
+
+        e.stopPropagation();
         console.log('🔧 Accessibility action:', action);
 
         switch (action) {
-          case 'textsize':
-            toggleTextSize();
-            break;
           case 'contrast':
             toggleHighContrast();
             break;
@@ -252,18 +285,16 @@
   // Utility functions for accessibility menu
   window.textSizeLevel = 0; // 0=100%, 1=125%, 2=150%, 3=175%, 4=200%
 
+  // Load saved font scale
+  const savedScale = localStorage.getItem('fontScale');
+  if (savedScale) {
+    window.textSizeLevel = parseInt(savedScale);
+    document.documentElement.setAttribute('data-font-scale', window.textSizeLevel);
+  }
+
   window.toggleTextSize = function() {
-    const html = document.documentElement;
-    window.textSizeLevel = (window.textSizeLevel + 1) % 5;
-    const sizes = ['100%', '125%', '150%', '175%', '200%'];
-    const size = sizes[window.textSizeLevel];
-
-    html.setAttribute('data-font-scale', window.textSizeLevel);
-    localStorage.setItem('fontScale', window.textSizeLevel);
-
-    window.TicketIQAccessibility?.announceToScreenReader(
-      window.textSizeLevel === 0 ? 'גודל טקסט 100%' : `גודל טקסט ${size}`
-    );
+    // This is now handled by submenu clicks - no longer cycles
+    console.log('Text size submenu opened');
   };
 
   window.toggleHighContrast = function() {

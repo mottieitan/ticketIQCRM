@@ -382,6 +382,40 @@ form:focus-within {
   box-shadow: inset 2px 0 0 #7c3aed;
 }
 
+/* Text size submenu */
+.a11y-submenu {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.a11y-submenu.hidden {
+  display: none;
+}
+
+.a11y-size-option {
+  width: 100%;
+  padding: 10px 16px !important;
+  background: #f9f7ff !important;
+  color: #000000 !important;
+  border: none !important;
+  text-align: center !important;
+  font-weight: 500 !important;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.a11y-size-option:hover {
+  background: #7c3aed !important;
+  color: #ffffff !important;
+}
+
+.a11y-size-option:active {
+  background: #6d28d9 !important;
+}
+
 /* Dark mode 3D adjustments */
 @media (prefers-color-scheme: dark) {
   .card {
