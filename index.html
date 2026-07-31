@@ -715,6 +715,10 @@ html[data-theme="dark"] {
         <input type="tel" id="phone" name="phone" aria-label="מספר טלפון" placeholder="050-1234567">
       </div>
       <div>
+        <label for="email">דוא״ל</label>
+        <input type="email" id="email" name="email" required aria-label="כתובת דוא״ל" placeholder="example@mail.com">
+      </div>
+      <div>
         <label for="subject">נושא הפנייה</label>
         <input type="text" id="subject" name="subject" required aria-label="נושא הפנייה" placeholder="תיאור בעיה">
       </div>
@@ -772,7 +776,7 @@ html[data-theme="dark"] {
   </div>
 
   <div class="card slide-in-right">
-    <div style="overflow-x: auto;">
+    <div class="tickets-table-wrapper">
       <table id="ticketsTable">
         <thead>
           <tr>
@@ -834,12 +838,24 @@ function validateTicketData(data) {
 
   if (!data.customer?.trim()) errors.push('שם לקוח חובה');
   if (!data.subject?.trim()) errors.push('נושא חובה');
+  if (!data.email?.trim()) errors.push('דוא״ל חובה');
   if (!data.category) errors.push('קטגוריה חובה');
   if (!data.priority) errors.push('עדיפות חובה');
 
   if (data.customer && data.customer.length > 255) errors.push('שם לקוח ארוך מדי');
   if (data.subject && data.subject.length > 500) errors.push('נושא ארוך מדי');
   if (data.description && data.description.length > 5000) errors.push('תיאור ארוך מדי');
+  if (data.email && data.email.length > 254) errors.push('דוא״ל ארוך מדי');
+
+  // Email validation
+  if (data.email && !window.isValidEmail(data.email)) {
+    errors.push('כתובת דוא״ל לא תקינה');
+  }
+
+  // Phone validation (if provided)
+  if (data.phone && !window.isValidIsraeliPhone(data.phone)) {
+    errors.push('מספר טלפון לא תקין. השתמש בפורמט: 0501234567');
+  }
 
   const validStatuses = ['open', 'pending', 'resolved', 'closed'];
   const validPriorities = ['high', 'medium', 'low'];
@@ -853,6 +869,7 @@ function validateTicketData(data) {
   return {
     customer: sanitizeHTML(data.customer.trim()),
     phone: sanitizeHTML(data.phone?.trim() || ''),
+    email: sanitizeHTML(data.email.trim()),
     subject: sanitizeHTML(data.subject.trim()),
     description: sanitizeHTML(data.description?.trim() || ''),
     category: data.category,
@@ -972,7 +989,7 @@ async function handleSubmit(e) {
     const { error } = await db.from('tickets').insert([{
       customer_name: validatedData.customer,
       customer_phone: validatedData.phone,
-      customer_email: user?.email || 'anonymous@ticketiq.local',
+      customer_email: validatedData.email || user?.email || 'anonymous@ticketiq.local',
       subject: validatedData.subject,
       category: validatedData.category,
       priority: validatedData.priority,

@@ -154,7 +154,7 @@
 
   // Accessibility Control Button - Professional Implementation
   function setupAccessibilityButton() {
-    // Create button
+    // Create button with inline styles to ensure it's always visible
     const button = document.createElement('button');
     button.id = 'accessibility-btn';
     button.className = 'accessibility-button';
@@ -164,6 +164,14 @@
     button.setAttribute('type', 'button');
     button.innerHTML = '♿';
     button.title = 'נגישות | Accessibility';
+
+    // Force fixed positioning with inline styles
+    button.style.position = 'fixed';
+    button.style.top = '20px';
+    button.style.left = '20px';
+    button.style.zIndex = '999999';
+    button.style.display = 'flex';
+    button.style.visibility = 'visible';
 
     // Create menu
     const menu = document.createElement('div');

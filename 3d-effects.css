@@ -223,28 +223,30 @@ form:focus-within {
 
 /* Accessibility button - floating action button (Top-Left) */
 .accessibility-button {
-  position: fixed;
-  top: 20px;
-  left: 20px;
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #7c3aed 0%, #ec4899 100%);
-  color: white;
-  border: 3px solid rgba(255, 255, 255, 0.3);
-  font-size: 32px;
-  cursor: pointer;
+  position: fixed !important;
+  top: 20px !important;
+  left: 20px !important;
+  width: 64px !important;
+  height: 64px !important;
+  border-radius: 50% !important;
+  background: linear-gradient(135deg, #7c3aed 0%, #ec4899 100%) !important;
+  color: white !important;
+  border: 3px solid rgba(255, 255, 255, 0.3) !important;
+  font-size: 32px !important;
+  cursor: pointer !important;
   box-shadow:
     0 8px 16px rgba(124, 58, 237, 0.3),
-    0 0 24px rgba(124, 58, 237, 0.2);
+    0 0 24px rgba(124, 58, 237, 0.2) !important;
   transition: all var(--transform-speed) cubic-bezier(0.23, 1, 0.320, 1);
-  z-index: 9999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  z-index: 999999 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
   backdrop-filter: blur(12px);
   animation: slideInFromTop 0.6s cubic-bezier(0.23, 1, 0.320, 1);
   transform-style: preserve-3d;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
 .accessibility-button:hover {
