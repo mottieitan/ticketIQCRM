@@ -143,72 +143,93 @@
     });
   }
 
-  // Accessibility Control Button
+  // Accessibility Control Button - Professional Implementation
   function setupAccessibilityButton() {
-    const button = document.getElementById('accessibility-btn');
-    const menu = document.getElementById('accessibility-menu');
+    // Create button
+    const button = document.createElement('button');
+    button.id = 'accessibility-btn';
+    button.className = 'accessibility-button';
+    button.setAttribute('aria-label', 'פתח תפריט נגישות - Accessibility Menu');
+    button.setAttribute('aria-expanded', 'false');
+    button.setAttribute('aria-controls', 'accessibility-menu');
+    button.setAttribute('type', 'button');
+    button.innerHTML = '♿';
+    button.title = 'נגישות | Accessibility';
 
-    if (!button) {
-      // Create button if it doesn't exist
-      const newButton = document.createElement('button');
-      newButton.id = 'accessibility-btn';
-      newButton.className = 'accessibility-button';
-      newButton.setAttribute('aria-label', 'פתח תפריט נגישות');
-      newButton.setAttribute('aria-expanded', 'false');
-      newButton.setAttribute('aria-controls', 'accessibility-menu');
-      newButton.innerHTML = '♿';
-      newButton.title = 'תפריט נגישות';
-      document.body.appendChild(newButton);
+    // Create menu
+    const menu = document.createElement('div');
+    menu.id = 'accessibility-menu';
+    menu.className = 'accessibility-menu hidden';
+    menu.setAttribute('role', 'menu');
+    menu.innerHTML = `
+      <button type="button" role="menuitem" class="a11y-menu-item" data-action="textsize" aria-label="הגדל גודל טקסט">
+        🔤 הגדל טקסט
+      </button>
+      <button type="button" role="menuitem" class="a11y-menu-item" data-action="contrast" aria-label="הפעל קונטרסט גבוה">
+        🎨 קונטרסט גבוה
+      </button>
+      <button type="button" role="menuitem" class="a11y-menu-item" data-action="darkmode" aria-label="החלף מצב כהה">
+        🌙 מצב כהה
+      </button>
+      <button type="button" role="menuitem" class="a11y-menu-item" data-action="focus" aria-label="דלג לתוכן ראשי">
+        ⚡ לתוכן ראשי
+      </button>
+    `;
 
-      // Create menu
-      const newMenu = document.createElement('div');
-      newMenu.id = 'accessibility-menu';
-      newMenu.className = 'accessibility-menu hidden';
-      newMenu.setAttribute('role', 'menu');
-      newMenu.innerHTML = `
-        <button type="button" role="menuitem" onclick="toggleTextSize()" aria-label="הגדל גודל טקסט">
-          🔤 הגדל טקסט
-        </button>
-        <button type="button" role="menuitem" onclick="toggleHighContrast()" aria-label="הפעל קונטרסט גבוה">
-          🎨 קונטרסט גבוה
-        </button>
-        <button type="button" role="menuitem" onclick="toggleDarkMode()" aria-label="החלף מצב כהה">
-          🌙 מצב כהה
-        </button>
-        <button type="button" role="menuitem" onclick="focusMainContent()" aria-label="דלג לתוכן ראשי">
-          ⚡ לתוכן ראשי
-        </button>
-      `;
-      document.body.appendChild(newMenu);
-    }
+    document.body.appendChild(button);
+    document.body.appendChild(menu);
 
-    // Toggle menu
-    const btn = document.getElementById('accessibility-btn');
-    const men = document.getElementById('accessibility-menu');
+    // Event listeners
+    button.addEventListener('click', () => {
+      const isHidden = menu.classList.toggle('hidden');
+      button.setAttribute('aria-expanded', !isHidden);
+      console.log('🔘 Accessibility menu toggled:', !isHidden ? 'opened' : 'closed');
+    });
 
-    if (btn && men) {
-      btn.addEventListener('click', () => {
-        men.classList.toggle('hidden');
-        btn.setAttribute('aria-expanded', !men.classList.contains('hidden'));
-      });
+    // Menu item actions
+    menu.querySelectorAll('.a11y-menu-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const action = item.dataset.action;
+        console.log('🔧 Accessibility action:', action);
 
-      // Close menu on escape
-      document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && !men.classList.contains('hidden')) {
-          men.classList.add('hidden');
-          btn.setAttribute('aria-expanded', 'false');
-          btn.focus();
+        switch (action) {
+          case 'textsize':
+            toggleTextSize();
+            break;
+          case 'contrast':
+            toggleHighContrast();
+            break;
+          case 'darkmode':
+            toggleDarkMode();
+            break;
+          case 'focus':
+            focusMainContent();
+            break;
         }
       });
+    });
 
-      // Close menu when clicking outside
-      document.addEventListener('click', (e) => {
-        if (!btn.contains(e.target) && !men.contains(e.target)) {
-          men.classList.add('hidden');
-          btn.setAttribute('aria-expanded', 'false');
+    // Close on Escape
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !menu.classList.contains('hidden')) {
+        menu.classList.add('hidden');
+        button.setAttribute('aria-expanded', 'false');
+        button.focus();
+        console.log('🔘 Menu closed via Escape');
+      }
+    });
+
+    // Close when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!button.contains(e.target) && !menu.contains(e.target)) {
+        if (!menu.classList.contains('hidden')) {
+          menu.classList.add('hidden');
+          button.setAttribute('aria-expanded', 'false');
         }
-      });
-    }
+      }
+    });
+
+    console.log('✅ Accessibility button initialized at top-left');
   }
 
   // Utility functions for accessibility menu
