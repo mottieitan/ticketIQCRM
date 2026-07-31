@@ -1,7 +1,12 @@
 -- Fix status constraint issue
--- Remove problematic status check constraint that prevents Hebrew status values
+-- Modify the status check constraint to allow Hebrew status values including 'בטיפול'
 ALTER TABLE tickets
 DROP CONSTRAINT IF EXISTS tickets_status_check CASCADE;
+
+-- Add updated constraint that allows all three Hebrew status values
+ALTER TABLE tickets
+ADD CONSTRAINT tickets_status_check
+CHECK (status IN ('פתוח', 'בטיפול', 'סגור'));
 
 -- Ensure status has valid default
 ALTER TABLE tickets

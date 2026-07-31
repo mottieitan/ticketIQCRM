@@ -818,29 +818,6 @@ let allTickets = [];
 let currentFilter = 'all';
 let currentUser = null;
 
-// === STATUS TRANSLATIONS ===
-const statusTranslations = {
-  'open': 'פתוח',
-  'pending': 'בטיפול',
-  'resolved': 'פתור',
-  'closed': 'סגור'
-};
-
-const statusReverse = {
-  'פתוח': 'open',
-  'בטיפול': 'pending',
-  'פתור': 'resolved',
-  'סגור': 'closed'
-};
-
-function getStatusDisplay(englishStatus) {
-  return statusTranslations[englishStatus] || englishStatus;
-}
-
-function getStatusDatabase(hebrewStatus) {
-  return statusReverse[hebrewStatus] || hebrewStatus;
-}
-
 // === INPUT VALIDATION ===
 function sanitizeHTML(str) {
   if (typeof str !== 'string') return '';
@@ -996,7 +973,7 @@ async function handleSubmit(e) {
       subject: validatedData.subject,
       category: validatedData.category,
       priority: validatedData.priority,
-      status: 'open', // Use English status for database
+      status: 'פתוח', // Use Hebrew status
       assigned_to: null, // validatedData.assignee || null,
       description: validatedData.description,
       tags: [],
@@ -1081,10 +1058,10 @@ function updateStats() {
 
   // Calculate stats - count tickets by status
   const stats = {
-    open: (allTickets || []).filter(t => t.status === 'open').length,
-    pending: (allTickets || []).filter(t => t.status === 'pending').length,
-    resolved: (allTickets || []).filter(t => t.status === 'resolved').length,
-    closed: (allTickets || []).filter(t => t.status === 'closed').length,
+    open: (allTickets || []).filter(t => t.status === 'פתוח').length,
+    pending: (allTickets || []).filter(t => t.status === 'בטיפול').length,
+    resolved: (allTickets || []).filter(t => t.status === 'פתור').length,
+    closed: (allTickets || []).filter(t => t.status === 'סגור').length,
     total: (allTickets || []).length
   };
 
@@ -1167,7 +1144,7 @@ function renderTickets() {
         </td>
         <td><span class="badge badge-primary">${sanitizeHTML(t.category)}</span></td>
         <td><span style="font-size: 1.2em; margin-left: 0.5rem;">${priorityEmoji}</span> ${t.priority}</td>
-        <td><span style="font-size: 1.2em; margin-left: 0.5rem;">${statusEmoji}</span> ${getStatusDisplay(t.status)}</td>
+        <td><span style="font-size: 1.2em; margin-left: 0.5rem;">${statusEmoji}</span> ${t.status}</td>
         <td>
           <small>${new Date(t.created_at).toLocaleDateString('he-IL')}</small>
           <br>
@@ -1222,7 +1199,7 @@ function viewTicketDetails(ticketId) {
       <div><strong>📧 מייל:</strong> ${sanitizeHTML(ticket.customer_email || 'לא מצוין')}</div>
       <div><strong>📂 קטגוריה:</strong> ${sanitizeHTML(ticket.category)}</div>
       <div><strong>⚡ עדיפות:</strong> ${priorityEmoji} ${ticket.priority}</div>
-      <div><strong>📍 סטטוס:</strong> ${statusEmoji} ${getStatusDisplay(ticket.status)}</div>
+      <div><strong>📍 סטטוס:</strong> ${statusEmoji} ${ticket.status}</div>
       <div><strong>📅 תאריך יצירה:</strong> ${new Date(ticket.created_at).toLocaleString('he-IL')}</div>
       <div><strong>📝 תיאור:</strong></div>
       <div style="background: var(--primary-light); padding: 1rem; border-radius: var(--radius-md); white-space: pre-wrap;">
@@ -1241,9 +1218,9 @@ function viewTicketDetails(ticketId) {
     <div class="modal" style="max-width: 600px; max-height: 80vh; overflow-y: auto;">
       ${details}
       <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-top: 2rem;">
-        ${ticket.status !== 'pending' && ticket.status !== 'closed' ? `<button class="btn btn-secondary" onclick="updateTicketStatusTo('pending', ${ticket.id})">⚠️ בטיפול</button>` : ''}
-        ${ticket.status !== 'closed' ? `<button class="btn btn-danger" onclick="updateTicketStatusTo('closed', ${ticket.id})">✓ סגור</button>` : ''}
-        ${ticket.status === 'closed' ? `<button class="btn btn-primary" onclick="updateTicketStatusTo('open', ${ticket.id})">🔄 פתח מחדש</button>` : ''}
+        ${ticket.status !== 'בטיפול' && ticket.status !== 'סגור' ? `<button class="btn btn-secondary" onclick="updateTicketStatusTo('בטיפול', ${ticket.id})">⚠️ בטיפול</button>` : ''}
+        ${ticket.status !== 'סגור' ? `<button class="btn btn-danger" onclick="updateTicketStatusTo('סגור', ${ticket.id})">✓ סגור</button>` : ''}
+        ${ticket.status === 'סגור' ? `<button class="btn btn-primary" onclick="updateTicketStatusTo('פתוח', ${ticket.id})">🔄 פתח מחדש</button>` : ''}
         <button class="btn btn-secondary" onclick="document.getElementById('ticket-modal-${ticket.id}').remove()">X סגור</button>
       </div>
     </div>
@@ -1266,9 +1243,9 @@ async function updateTicketStatusTo(newStatus, ticketId) {
       status: newStatus
     };
 
-    if (newStatus === 'closed') {
+    if (newStatus === 'סגור') {
       updateData.resolved_at = new Date().toISOString();
-    } else if (newStatus === 'open') {
+    } else if (newStatus === 'פתוח') {
       // Clear resolved_at when reopening
       updateData.resolved_at = null;
     }
@@ -1292,7 +1269,7 @@ async function updateTicketStatusTo(newStatus, ticketId) {
     }
 
     console.log(`✅ Successfully updated ticket ${ticketId} to ${newStatus}`);
-    showToast(`✅ הפנייה הועברה ל${getStatusDisplay(newStatus)}`, 'success');
+    showToast(`✅ הפנייה הועברה ל${newStatus}`, 'success');
     const modal = document.getElementById(`ticket-modal-${ticketId}`);
     if (modal) modal.remove();
     setTimeout(() => loadTickets(), 500);
@@ -1329,7 +1306,7 @@ async function updateStatus(event) {
     const { error } = await db
       .from('tickets')
       .update({
-        status: 'closed', // Use English status for database
+        status: 'סגור', // Use Hebrew status
         resolved_at: new Date().toISOString()
         // Note: updated_by NOT included - anonymous users don't have team_members entry
       })
