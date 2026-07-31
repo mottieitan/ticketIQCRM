@@ -963,7 +963,7 @@ async function handleSubmit(e) {
       subject: validatedData.subject,
       category: validatedData.category,
       priority: validatedData.priority,
-      status: 'open',
+      status: 'פתוח', // Use Hebrew status
       assigned_to: null, // validatedData.assignee || null,
       description: validatedData.description,
       tags: [],
@@ -1041,11 +1041,12 @@ function updateStats() {
   console.log('📋 Unique statuses in DB:', uniqueStatuses.join(', '));
 
   // Calculate stats - count tickets by status
+  // Support both Hebrew and English status values
   const stats = {
-    open: (allTickets || []).filter(t => t.status === 'open').length,
-    pending: (allTickets || []).filter(t => t.status === 'pending').length,
-    resolved: (allTickets || []).filter(t => t.status === 'resolved').length,
-    closed: (allTickets || []).filter(t => t.status === 'closed').length,
+    open: (allTickets || []).filter(t => t.status === 'open' || t.status === 'פתוח').length,
+    pending: (allTickets || []).filter(t => t.status === 'pending' || t.status === 'בטיפול').length,
+    resolved: (allTickets || []).filter(t => t.status === 'resolved' || t.status === 'פתור').length,
+    closed: (allTickets || []).filter(t => t.status === 'closed' || t.status === 'סגור').length,
     total: (allTickets || []).length
   };
 
@@ -1223,7 +1224,7 @@ async function updateStatus(event) {
     const { error } = await db
       .from('tickets')
       .update({
-        status: 'resolved',
+        status: 'סגור', // Use Hebrew status
         resolved_at: new Date().toISOString(),
         updated_by: user?.id || null
       })
