@@ -1211,7 +1211,62 @@ function viewTicketDetails(ticketId) {
     </div>
   `;
 
-  alert(details);
+  // Show modal with action buttons
+  const modal = document.createElement('div');
+  modal.className = 'modal-overlay active';
+  modal.id = `ticket-modal-${ticket.id}`;
+  modal.innerHTML = `
+    <div class="modal" style="max-width: 600px; max-height: 80vh; overflow-y: auto;">
+      ${details}
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-top: 2rem;">
+        ${ticket.status !== 'בטיפול' && ticket.status !== 'סגור' ? `<button class="btn btn-secondary" onclick="updateTicketStatusTo('בטיפול', ${ticket.id})">⚠️ בטיפול</button>` : ''}
+        ${ticket.status !== 'סגור' ? `<button class="btn btn-danger" onclick="updateTicketStatusTo('סגור', ${ticket.id})">✓ סגור</button>` : ''}
+        ${ticket.status === 'סגור' ? `<button class="btn btn-primary" onclick="updateTicketStatusTo('פתוח', ${ticket.id})">🔄 פתח מחדש</button>` : ''}
+        <button class="btn btn-secondary" onclick="document.getElementById('ticket-modal-${ticket.id}').remove()">X סגור</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) modal.remove();
+  });
+}
+
+async function updateTicketStatusTo(newStatus, ticketId) {
+  try {
+    if (!db) {
+      showToast('❌ חיבור לשרת לא זמין', 'error');
+      return;
+    }
+
+    const updateData = {
+      status: newStatus
+    };
+
+    if (newStatus === 'סגור') {
+      updateData.resolved_at = new Date().toISOString();
+    }
+
+    const { error } = await db
+      .from('tickets')
+      .update(updateData)
+      .eq('id', ticketId);
+
+    if (error) {
+      console.error('🔴 Update error:', error);
+      throw error;
+    }
+
+    showToast(`✅ הפנייה הועברה ל${newStatus}`, 'success');
+    const modal = document.getElementById(`ticket-modal-${ticketId}`);
+    if (modal) modal.remove();
+    setTimeout(() => loadTickets(), 500);
+
+  } catch (err) {
+    console.error('🔴 Update error:', err);
+    showToast('❌ שגיאה בעדכון: ' + (err.message || JSON.stringify(err)), 'error');
+  }
 }
 
 async function updateStatus(event) {
