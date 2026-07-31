@@ -701,13 +701,16 @@ async function handleSubmit(e) {
 
     const { error } = await db.from('tickets').insert([{
       customer_name: data.customer,
-      phone: data.phone,
+      customer_phone: data.phone,
+      customer_email: null,
       subject: data.subject,
       category: data.category,
       priority: data.priority,
       status: 'open',
       assigned_to: data.assignee || null,
-      description: data.description
+      description: data.description,
+      tags: [],
+      attachments: []
     }]);
 
     if (error) throw error;
@@ -745,7 +748,10 @@ function renderTickets() {
 
   tbody.innerHTML = filtered.map(t => `
     <tr>
-      <td>${t.customer_name}</td>
+      <td>
+        <div>${t.customer_name}</div>
+        <small style="color: var(--text-light);">${t.customer_phone || ''}</small>
+      </td>
       <td>${t.subject}</td>
       <td><span class="badge badge-primary">${t.category}</span></td>
       <td><span class="badge badge-${t.priority === 'high' ? 'danger' : t.priority === 'medium' ? 'warning' : 'success'}">${t.priority}</span></td>
