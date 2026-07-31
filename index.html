@@ -682,7 +682,7 @@ html[data-theme="dark"] {
   <div class="grid" id="statsContainer">
     <div class="stat-card">
       <div class="stat-value" id="stat-open" style="font-size: 3rem; font-weight: 900;">0</div>
-      <div class="stat-label">🔴 פתוחות</div>
+      <div class="stat-label">🔴 פעילות</div>
     </div>
     <div class="stat-card">
       <div class="stat-value" id="stat-pending" style="font-size: 3rem; font-weight: 900;">0</div>
@@ -690,7 +690,7 @@ html[data-theme="dark"] {
     </div>
     <div class="stat-card">
       <div class="stat-value" id="stat-resolved" style="font-size: 3rem; font-weight: 900;">0</div>
-      <div class="stat-label">✅ פתורות</div>
+      <div class="stat-label">✅ סגורות</div>
     </div>
     <div class="stat-card">
       <div class="stat-value" id="stat-total" style="font-size: 3rem; font-weight: 900;">0</div>
@@ -879,14 +879,20 @@ async function checkAuth() {
     if (!currentUser) {
       let userId = localStorage.getItem('anon-user-id');
 
-      // If no stored ID, generate new one (without 'anon-' prefix)
+      // Clean up old format if it starts with 'anon-'
+      if (userId && userId.startsWith('anon-')) {
+        userId = userId.replace(/^anon-/, '');
+        localStorage.setItem('anon-user-id', userId);
+      }
+
+      // If no stored ID, generate new one
       if (!userId) {
         userId = generateUUID();
         localStorage.setItem('anon-user-id', userId);
       }
 
       currentUser = {
-        id: userId, // Don't add 'anon-' prefix - just use the UUID
+        id: userId, // Use clean UUID without any prefix
         email: 'anonymous@ticketiq.local'
       };
 
@@ -899,6 +905,13 @@ async function checkAuth() {
     // If auth fails, use anonymous mode
     if (!currentUser) {
       let userId = localStorage.getItem('anon-user-id');
+
+      // Clean up old format
+      if (userId && userId.startsWith('anon-')) {
+        userId = userId.replace(/^anon-/, '');
+        localStorage.setItem('anon-user-id', userId);
+      }
+
       if (!userId) {
         userId = generateUUID();
         localStorage.setItem('anon-user-id', userId);
@@ -1018,25 +1031,39 @@ async function loadTickets() {
 function updateStats() {
   console.log('📊 updateStats called, allTickets.length:', allTickets?.length);
 
-  // Calculate stats
+  if (!allTickets || allTickets.length === 0) {
+    console.warn('⚠️ No tickets available');
+    return;
+  }
+
+  // Debug: Show all unique statuses
+  const uniqueStatuses = [...new Set(allTickets.map(t => t.status))];
+  console.log('📋 Unique statuses in DB:', uniqueStatuses);
+
+  // Calculate stats - count tickets by status
   const stats = {
     open: (allTickets || []).filter(t => t.status === 'open').length,
     pending: (allTickets || []).filter(t => t.status === 'pending').length,
-    resolved: (allTickets || []).filter(t => t.status === 'resolved' || t.status === 'closed').length,
+    resolved: (allTickets || []).filter(t => t.status === 'resolved').length,
+    closed: (allTickets || []).filter(t => t.status === 'closed').length,
     total: (allTickets || []).length
   };
 
-  console.log('📊 Calculated Stats:', stats);
+  // Display open + pending as "active"
+  const activeCount = stats.open + stats.pending;
+  const completedCount = stats.resolved + stats.closed;
+
+  console.log('📊 Calculated Stats:', { open: stats.open, pending: stats.pending, resolved: stats.resolved, closed: stats.closed, total: stats.total });
 
   // Update DOM elements
-  const elements = {
-    'stat-open': stats.open,
+  const displayStats = {
+    'stat-open': activeCount, // Show active tickets (open + pending)
     'stat-pending': stats.pending,
-    'stat-resolved': stats.resolved,
+    'stat-resolved': completedCount, // Show completed (resolved + closed)
     'stat-total': stats.total
   };
 
-  for (const [id, value] of Object.entries(elements)) {
+  for (const [id, value] of Object.entries(displayStats)) {
     const el = document.getElementById(id);
     if (el) {
       const oldValue = el.textContent;
