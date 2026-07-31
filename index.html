@@ -701,64 +701,106 @@ html[data-theme="dark"] {
 </section>
 
 <main id="main-content">
-<section class="section card fade-in" role="region" aria-label="טופס הוספת פנייה חדשה">
-  <h1>TicketIQ - ניהול פניות לקוחות</h1>
-  <h2>הוסף פנייה חדשה</h2>
-  <form id="ticketForm" onsubmit="handleSubmit(event)" aria-label="טופס יצירת פנייה חדשה">
-    <div class="grid-2">
-      <div>
-        <label for="customer">שם הלקוח</label>
-        <input type="text" id="customer" name="customer" required aria-label="שם הלקוח" placeholder="הכנס שם">
+<section class="section card fade-in form-section" role="region" aria-label="טופס הוספת פנייה חדשה">
+  <div class="form-header">
+    <div class="form-title-group">
+      <h1>TicketIQ</h1>
+      <h2>📝 פנייה חדשה</h2>
+    </div>
+    <div class="form-progress">
+      <span class="progress-step active">1️⃣ פרטי בסיסיים</span>
+      <span class="progress-arrow">→</span>
+      <span class="progress-step">2️⃣ פרטי הבעיה</span>
+      <span class="progress-arrow">→</span>
+      <span class="progress-step">3️⃣ סיכום</span>
+    </div>
+  </div>
+
+  <form id="ticketForm" onsubmit="handleSubmit(event)" aria-label="טופס יצירת פנייה חדשה" class="modern-form">
+    <!-- Section 1: Contact Info -->
+    <div class="form-section-group">
+      <div class="section-header">
+        <span class="section-icon">👤</span>
+        <h3>פרטי איש הקשר</h3>
       </div>
-      <div>
-        <label for="phone">טלפון</label>
-        <input type="tel" id="phone" name="phone" aria-label="מספר טלפון" placeholder="050-1234567">
-      </div>
-      <div>
-        <label for="email">דוא״ל</label>
-        <input type="email" id="email" name="email" required aria-label="כתובת דוא״ל" placeholder="example@mail.com">
-      </div>
-      <div>
-        <label for="subject">נושא הפנייה</label>
-        <input type="text" id="subject" name="subject" required aria-label="נושא הפנייה" placeholder="תיאור בעיה">
-      </div>
-      <div>
-        <label for="category">קטגוריה</label>
-        <select id="category" name="category" required aria-label="בחר קטגוריה">
-          <option value="">בחר קטגוריה</option>
-          <option value="technical">טכני</option>
-          <option value="billing">חיוב</option>
-          <option value="shipping">משלוח</option>
-          <option value="product">מוצר</option>
-          <option value="other">אחר</option>
-        </select>
-      </div>
-      <div>
-        <label for="priority">עדיפות</label>
-        <select id="priority" name="priority" required aria-label="בחר עדיפות">
-          <option value="">בחר עדיפות</option>
-          <option value="high">גבוהה</option>
-          <option value="medium">בינונית</option>
-          <option value="low">נמוכה</option>
-        </select>
-      </div>
-      <div>
-        <label for="assignee">הקצה ל-</label>
-        <select id="assignee" name="assignee" aria-label="הקצה ל-משתמש">
-          <option value="">אוטומטי</option>
-          <option value="team1">צוות 1</option>
-          <option value="team2">צוות 2</option>
-          <option value="team3">צוות 3</option>
-        </select>
+      <div class="form-grid-3">
+        <div class="form-group">
+          <label for="customer">👤 שם הלקוח <span class="required">*</span></label>
+          <input type="text" id="customer" name="customer" required aria-label="שם הלקוח" placeholder="שם מלא">
+        </div>
+        <div class="form-group">
+          <label for="phone">📞 טלפון</label>
+          <input type="tel" id="phone" name="phone" aria-label="מספר טלפון" placeholder="050-1234567">
+        </div>
+        <div class="form-group">
+          <label for="email">📧 דוא״ל <span class="required">*</span></label>
+          <input type="email" id="email" name="email" required aria-label="כתובת דוא״ל" placeholder="user@example.com">
+        </div>
       </div>
     </div>
-    <textarea name="description" placeholder="תיאור מלא של הבעיה..." aria-label="תיאור הפנייה"></textarea>
-    <div style="display: flex; gap: 1rem; margin-top: 1rem;">
-      <button type="submit" class="btn btn-primary">
-        ➕ הוסף פנייה
+
+    <!-- Section 2: Issue Details -->
+    <div class="form-section-group">
+      <div class="section-header">
+        <span class="section-icon">💬</span>
+        <h3>פרטי הבעיה</h3>
+      </div>
+      <div class="form-group full-width">
+        <label for="subject">📌 נושא הפנייה <span class="required">*</span></label>
+        <input type="text" id="subject" name="subject" required aria-label="נושא הפנייה" placeholder="תיאור קצר של הבעיה">
+      </div>
+      <div class="form-group full-width">
+        <label for="description">📝 תיאור מפורט <span class="required">*</span></label>
+        <textarea id="description" name="description" placeholder="תיאור מלא של הבעיה, השלבים לשחזור, וכו'..." aria-label="תיאור הפנייה" style="min-height: 120px; resize: vertical;"></textarea>
+      </div>
+    </div>
+
+    <!-- Section 3: Classification -->
+    <div class="form-section-group">
+      <div class="section-header">
+        <span class="section-icon">🏷️</span>
+        <h3>סיווג ועדיפויות</h3>
+      </div>
+      <div class="form-grid-3">
+        <div class="form-group">
+          <label for="category">📂 קטגוריה <span class="required">*</span></label>
+          <select id="category" name="category" required aria-label="בחר קטגוריה">
+            <option value="">בחר קטגוריה</option>
+            <option value="technical">🔧 טכני</option>
+            <option value="billing">💳 חיוב</option>
+            <option value="shipping">📦 משלוח</option>
+            <option value="product">🛍️ מוצר</option>
+            <option value="other">❓ אחר</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="priority">⚡ עדיפות <span class="required">*</span></label>
+          <select id="priority" name="priority" required aria-label="בחר עדיפות">
+            <option value="">בחר עדיפות</option>
+            <option value="high">🔥 גבוהה</option>
+            <option value="medium">📌 בינונית</option>
+            <option value="low">💤 נמוכה</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="assignee">👥 הקצה ל-</label>
+          <select id="assignee" name="assignee" aria-label="הקצה ל-משתמש">
+            <option value="">🤖 אוטומטי</option>
+            <option value="team1">👨‍💼 צוות 1</option>
+            <option value="team2">👩‍💼 צוות 2</option>
+            <option value="team3">👨‍🔧 צוות 3</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary btn-large">
+        ✅ שלח פנייה
       </button>
-      <button type="reset" class="btn btn-secondary">
-        🔄 נקה
+      <button type="reset" class="btn btn-secondary btn-large">
+        🔄 נקה טופס
       </button>
     </div>
   </form>

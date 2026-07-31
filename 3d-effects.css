@@ -689,6 +689,209 @@ html[data-high-contrast="true"] .accessibility-menu {
   border: 3px solid #000000 !important;
 }
 
+/* Modern Form Styling */
+.form-section {
+  background: linear-gradient(135deg, var(--primary-light) 0%, rgba(124, 58, 237, 0.05) 100%);
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.form-header {
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid var(--border);
+}
+
+.form-title-group {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.form-title-group h1 {
+  color: var(--primary);
+  font-size: 1.8rem;
+  margin: 0;
+}
+
+.form-title-group h2 {
+  font-size: 1.5rem;
+  color: var(--text);
+  margin: 0;
+  font-weight: 600;
+}
+
+.form-progress {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  flex-wrap: wrap;
+}
+
+.progress-step {
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  background: rgba(124, 58, 237, 0.1);
+  color: var(--primary);
+  font-weight: 500;
+}
+
+.progress-step.active {
+  background: var(--primary);
+  color: white;
+}
+
+.progress-arrow {
+  color: var(--border);
+  opacity: 0.5;
+}
+
+.modern-form {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.form-section-group {
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  backdrop-filter: blur(10px);
+  transition: all var(--transition);
+}
+
+.form-section-group:hover {
+  border-color: var(--primary);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.1);
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.section-icon {
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, var(--primary-light), rgba(124, 58, 237, 0.1));
+  border-radius: 10px;
+}
+
+.section-header h3 {
+  margin: 0;
+  color: var(--primary);
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.form-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group.full-width {
+  grid-column: 1 / -1;
+}
+
+.form-group label {
+  font-weight: 600;
+  color: var(--text);
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.required {
+  color: #e11d48;
+  font-weight: bold;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  font-size: 0.95rem;
+  font-family: inherit;
+  transition: all var(--transition);
+  background: white;
+  color: var(--text);
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+  transform: translateY(-2px);
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  color: var(--text-light);
+}
+
+.form-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.btn-large {
+  padding: 0.9rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  .form-section-group {
+    background: rgba(34, 27, 64, 0.6);
+  }
+
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    background: rgba(255, 255, 255, 0.05);
+    color: #f3eeff;
+    border-color: var(--border);
+  }
+
+  .form-group input:focus,
+  .form-group select:focus,
+  .form-group textarea:focus {
+    background: rgba(255, 255, 255, 0.1);
+  }
+}
+
 /* Mobile adjustments */
 @media (max-width: 640px) {
   .accessibility-button {
@@ -708,5 +911,21 @@ html[data-high-contrast="true"] .accessibility-menu {
 
   .card:hover {
     transform: translateZ(10px);
+  }
+
+  .form-grid-3 {
+    grid-template-columns: 1fr;
+  }
+
+  .form-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .form-progress {
+    font-size: 0.8rem;
+  }
+
+  .progress-arrow {
+    display: none;
   }
 }
