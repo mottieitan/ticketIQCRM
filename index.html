@@ -679,21 +679,21 @@ html[data-theme="dark"] {
 
 <section class="section">
   <h2>📊 סטטיסטיקות בזמן אמת</h2>
-  <div class="grid">
+  <div class="grid" id="statsContainer">
     <div class="stat-card">
-      <div class="stat-value" id="stat-open">0</div>
+      <div class="stat-value" id="stat-open" style="font-size: 3rem; font-weight: 900;">0</div>
       <div class="stat-label">🔴 פתוחות</div>
     </div>
     <div class="stat-card">
-      <div class="stat-value" id="stat-pending">0</div>
+      <div class="stat-value" id="stat-pending" style="font-size: 3rem; font-weight: 900;">0</div>
       <div class="stat-label">⚠️ בטיפול</div>
     </div>
     <div class="stat-card">
-      <div class="stat-value" id="stat-resolved">0</div>
+      <div class="stat-value" id="stat-resolved" style="font-size: 3rem; font-weight: 900;">0</div>
       <div class="stat-label">✅ פתורות</div>
     </div>
     <div class="stat-card">
-      <div class="stat-value" id="stat-total">0</div>
+      <div class="stat-value" id="stat-total" style="font-size: 3rem; font-weight: 900;">0</div>
       <div class="stat-label">📈 סה"כ</div>
     </div>
   </div>
@@ -877,23 +877,37 @@ async function checkAuth() {
     // If no session (using Anon key), create a temporary user object
     // In production, implement proper auth or use device ID
     if (!currentUser) {
+      let userId = localStorage.getItem('anon-user-id');
+
+      // If no stored ID, generate new one (without 'anon-' prefix)
+      if (!userId) {
+        userId = generateUUID();
+        localStorage.setItem('anon-user-id', userId);
+      }
+
       currentUser = {
-        id: 'anon-' + (localStorage.getItem('anon-user-id') || generateUUID()),
+        id: userId, // Don't add 'anon-' prefix - just use the UUID
         email: 'anonymous@ticketiq.local'
       };
-      // Store the ID for consistency
-      localStorage.setItem('anon-user-id', currentUser.id);
+
+      console.log('👤 Anonymous user:', currentUser.id);
     }
 
     return currentUser;
   } catch (err) {
+    console.error('❌ Auth error:', err);
     // If auth fails, use anonymous mode
     if (!currentUser) {
+      let userId = localStorage.getItem('anon-user-id');
+      if (!userId) {
+        userId = generateUUID();
+        localStorage.setItem('anon-user-id', userId);
+      }
+
       currentUser = {
-        id: 'anon-' + (localStorage.getItem('anon-user-id') || generateUUID()),
+        id: userId,
         email: 'anonymous@ticketiq.local'
       };
-      localStorage.setItem('anon-user-id', currentUser.id);
     }
     return currentUser;
   }
@@ -1002,29 +1016,36 @@ async function loadTickets() {
 }
 
 function updateStats() {
-  if (!allTickets || allTickets.length === 0) {
-    console.warn('⚠️ No tickets to calculate stats');
-    return;
-  }
+  console.log('📊 updateStats called, allTickets.length:', allTickets?.length);
 
+  // Calculate stats
   const stats = {
-    open: allTickets.filter(t => t.status === 'open').length,
-    pending: allTickets.filter(t => t.status === 'pending').length,
-    resolved: allTickets.filter(t => t.status === 'resolved' || t.status === 'closed').length,
-    total: allTickets.length
+    open: (allTickets || []).filter(t => t.status === 'open').length,
+    pending: (allTickets || []).filter(t => t.status === 'pending').length,
+    resolved: (allTickets || []).filter(t => t.status === 'resolved' || t.status === 'closed').length,
+    total: (allTickets || []).length
   };
 
-  console.log(`📊 Stats Updated:`, stats);
+  console.log('📊 Calculated Stats:', stats);
 
-  const statOpen = document.getElementById('stat-open');
-  const statPending = document.getElementById('stat-pending');
-  const statResolved = document.getElementById('stat-resolved');
-  const statTotal = document.getElementById('stat-total');
+  // Update DOM elements
+  const elements = {
+    'stat-open': stats.open,
+    'stat-pending': stats.pending,
+    'stat-resolved': stats.resolved,
+    'stat-total': stats.total
+  };
 
-  if (statOpen) statOpen.textContent = stats.open;
-  if (statPending) statPending.textContent = stats.pending;
-  if (statResolved) statResolved.textContent = stats.resolved;
-  if (statTotal) statTotal.textContent = stats.total;
+  for (const [id, value] of Object.entries(elements)) {
+    const el = document.getElementById(id);
+    if (el) {
+      const oldValue = el.textContent;
+      el.textContent = String(value);
+      console.log(`✅ Updated ${id}: ${oldValue} → ${value}`);
+    } else {
+      console.warn(`⚠️ Element #${id} not found`);
+    }
+  }
 }
 
 function renderTickets() {
