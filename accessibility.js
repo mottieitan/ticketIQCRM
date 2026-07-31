@@ -242,14 +242,19 @@
   }
 
   // Utility functions for accessibility menu
+  window.textSizeLevel = 0; // 0=100%, 1=125%, 2=150%, 3=175%, 4=200%
+
   window.toggleTextSize = function() {
     const html = document.documentElement;
-    const current = html.getAttribute('data-text-size') || 'normal';
-    const next = current === 'normal' ? 'large' : 'normal';
-    html.setAttribute('data-text-size', next);
-    localStorage.setItem('textSize', next);
+    window.textSizeLevel = (window.textSizeLevel + 1) % 5;
+    const sizes = ['100%', '125%', '150%', '175%', '200%'];
+    const size = sizes[window.textSizeLevel];
+
+    html.setAttribute('data-font-scale', window.textSizeLevel);
+    localStorage.setItem('fontScale', window.textSizeLevel);
+
     window.TicketIQAccessibility?.announceToScreenReader(
-      next === 'large' ? 'גודל טקסט הוגדל' : 'גודל טקסט חזר לנורמלי'
+      window.textSizeLevel === 0 ? 'גודל טקסט 100%' : `גודל טקסט ${size}`
     );
   };
 
@@ -345,6 +350,42 @@
     const form = document.getElementById('ticketForm');
     if (!form) return;
 
+    // Israeli phone validation
+    const phoneInputs = form.querySelectorAll('input[type="tel"], input[name*="phone"], input[name*="phone"]');
+    phoneInputs.forEach(input => {
+      input.addEventListener('blur', (e) => {
+        const value = e.target.value.trim();
+        if (value) {
+          if (!isValidIsraeliPhone(value)) {
+            e.target.setAttribute('aria-invalid', 'true');
+            e.target.setAttribute('aria-describedby', `error-${e.target.id}`);
+            showErrorMessage(e.target, 'מספר טלפון לא תקין. השתמש בפורמט: 0501234567 או 05-012-3456');
+          } else {
+            e.target.setAttribute('aria-invalid', 'false');
+            clearErrorMessage(e.target);
+          }
+        }
+      });
+    });
+
+    // Email validation
+    const emailInputs = form.querySelectorAll('input[type="email"], input[name*="email"]');
+    emailInputs.forEach(input => {
+      input.addEventListener('blur', (e) => {
+        const value = e.target.value.trim();
+        if (value) {
+          if (!isValidEmail(value)) {
+            e.target.setAttribute('aria-invalid', 'true');
+            e.target.setAttribute('aria-describedby', `error-${e.target.id}`);
+            showErrorMessage(e.target, 'כתובת דוא״ל לא תקינה');
+          } else {
+            e.target.setAttribute('aria-invalid', 'false');
+            clearErrorMessage(e.target);
+          }
+        }
+      });
+    });
+
     form.addEventListener('invalid', (e) => {
       const input = e.target;
       if (input.hasAttribute('aria-invalid')) {
@@ -361,6 +402,41 @@
       }
     });
   }
+
+  // Validate Israeli phone number
+  window.isValidIsraeliPhone = function(phone) {
+    const cleaned = phone.replace(/\D/g, '');
+    return cleaned.length === 10 && /^0[234567][0-9]{8}$/.test(cleaned);
+  };
+
+  // Validate email
+  window.isValidEmail = function(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email) && email.length <= 254;
+  };
+
+  // Show error message
+  window.showErrorMessage = function(input, message) {
+    let errorDiv = document.getElementById(`error-${input.id}`);
+    if (!errorDiv) {
+      errorDiv = document.createElement('div');
+      errorDiv.id = `error-${input.id}`;
+      errorDiv.role = 'alert';
+      errorDiv.style.color = '#e11d48';
+      errorDiv.style.fontSize = '14px';
+      errorDiv.style.marginTop = '4px';
+      input.parentElement.appendChild(errorDiv);
+    }
+    errorDiv.textContent = message;
+  };
+
+  // Clear error message
+  window.clearErrorMessage = function(input) {
+    const errorDiv = document.getElementById(`error-${input.id}`);
+    if (errorDiv) {
+      errorDiv.remove();
+    }
+  };
 
   // Text Size Adjustment (User Preference)
   function setupTextSizePreferences() {
