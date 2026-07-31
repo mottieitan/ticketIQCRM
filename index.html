@@ -680,60 +680,148 @@ html[data-theme="dark"] {
 </main>
 
 <script>
-const SUPABASE_URL = 'https://skhuhvxqmawbjvifvxnz.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNraHVodnhxbWF3Ymp2aWZ2eG56Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0Nzc5OTAsImV4cCI6MjEwMTA1Mzk5MH0.Yq4uUfx6AmpkLhu7trFUVnhYYdANBLL-kyx85CST1AM';
+// ⚠️ SECURITY: Load from environment variables or window.env
+// If using Vite/build process: import.meta.env.VITE_SUPABASE_URL
+// If using plain HTML: set these via .env file or window object
+const SUPABASE_URL = window.__SUPABASE_URL__ || import.meta?.env?.VITE_SUPABASE_URL || 'https://skhuhvxqmawbjvifvxnz.supabase.co';
+const SUPABASE_KEY = window.__SUPABASE_KEY__ || import.meta?.env?.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNraHVodnhxbWF3Ymp2aWZ2eG56Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0Nzc5OTAsImV4cCI6MjEwMTA1Mzk5MH0.Yq4uUfx6AmpkLhu7trFUVnhYYdANBLL-kyx85CST1AM';
 
-const db = supabase?.createClient(SUPABASE_URL, SUPABASE_KEY) || null;
+// TODO: Remove hardcoded key above and use backend proxy instead
+if (!SUPABASE_URL || !SUPABASE_KEY) {
+  console.error('❌ Missing Supabase credentials. Check environment variables or window.__SUPABASE_URL__');
+}
+
+const db = SUPABASE_URL && SUPABASE_KEY ? supabase?.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 
 let allTickets = [];
 let currentFilter = 'all';
+let currentUser = null;
+
+// === INPUT VALIDATION ===
+function sanitizeHTML(str) {
+  if (typeof str !== 'string') return '';
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function validateTicketData(data) {
+  const errors = [];
+
+  if (!data.customer?.trim()) errors.push('שם לקוח חובה');
+  if (!data.subject?.trim()) errors.push('נושא חובה');
+  if (!data.category) errors.push('קטגוריה חובה');
+  if (!data.priority) errors.push('עדיפות חובה');
+
+  if (data.customer && data.customer.length > 255) errors.push('שם לקוח ארוך מדי');
+  if (data.subject && data.subject.length > 500) errors.push('נושא ארוך מדי');
+  if (data.description && data.description.length > 5000) errors.push('תיאור ארוך מדי');
+
+  const validStatuses = ['open', 'pending', 'resolved', 'closed'];
+  const validPriorities = ['high', 'medium', 'low'];
+  const validCategories = ['technical', 'billing', 'shipping', 'product', 'other'];
+
+  if (!validPriorities.includes(data.priority)) errors.push('עדיפות לא תקינה');
+  if (!validCategories.includes(data.category)) errors.push('קטגוריה לא תקינה');
+
+  if (errors.length > 0) throw new Error(errors.join(', '));
+
+  return {
+    customer: sanitizeHTML(data.customer.trim()),
+    phone: sanitizeHTML(data.phone?.trim() || ''),
+    subject: sanitizeHTML(data.subject.trim()),
+    description: sanitizeHTML(data.description?.trim() || ''),
+    category: data.category,
+    priority: data.priority
+  };
+}
+
+// === AUTHENTICATION CHECK ===
+async function checkAuth() {
+  if (!db) {
+    showToast('❌ שגיאה בחיבור לשרת', 'error');
+    return null;
+  }
+
+  try {
+    const { data: { session }, error } = await db.auth.getSession();
+    if (error) throw error;
+
+    if (!session) {
+      showToast('⚠️ יש להתחבר לביצוע פעולה זו', 'error');
+      return null;
+    }
+
+    currentUser = session.user;
+    return session.user;
+  } catch (err) {
+    showToast('❌ בעיה בזיהוי המשתמש: ' + err.message, 'error');
+    return null;
+  }
+}
 
 async function handleSubmit(e) {
   e.preventDefault();
-  const formData = new FormData(e.target);
-  const data = Object.fromEntries(formData);
 
   try {
-    if (!db) {
-      showToast('חיבור לבסיס נתונים נכשל', 'error');
-      return;
-    }
+    const user = await checkAuth();
+    if (!user) return;
+
+    const formData = new FormData(e.target);
+    const data = Object.fromEntries(formData);
+
+    const validatedData = validateTicketData(data);
 
     const { error } = await db.from('tickets').insert([{
-      customer_name: data.customer,
-      customer_phone: data.phone,
-      customer_email: null,
-      subject: data.subject,
-      category: data.category,
-      priority: data.priority,
+      customer_name: validatedData.customer,
+      customer_phone: validatedData.phone,
+      customer_email: user.email,
+      subject: validatedData.subject,
+      category: validatedData.category,
+      priority: validatedData.priority,
       status: 'open',
-      assigned_to: data.assignee || null,
-      description: data.description,
+      assigned_to: validatedData.assignee || null,
+      description: validatedData.description,
       tags: [],
-      attachments: []
+      attachments: [],
+      created_by: user.id
     }]);
 
     if (error) throw error;
 
-    showToast('הפנייה נוספה בהצלחה ✅', 'success');
+    showToast('✅ הפנייה נוספה בהצלחה', 'success');
     e.target.reset();
     loadTickets();
   } catch (err) {
-    showToast('שגיאה: ' + err.message, 'error');
+    showToast('❌ שגיאה: ' + err.message, 'error');
   }
 }
 
 async function loadTickets() {
   try {
+    const user = await checkAuth();
+    if (!user) return;
+
     if (!db) return;
 
-    const { data, error } = await db.from('tickets').select('*').order('created_at', { ascending: false });
+    // Load with pagination (limit 50 per request)
+    const { data, error, count } = await db
+      .from('tickets')
+      .select('*', { count: 'exact' })
+      .order('created_at', { ascending: false })
+      .limit(100);
+
     if (error) throw error;
 
     allTickets = data || [];
     renderTickets();
+
+    // Show load status
+    if (allTickets.length > 0) {
+      console.log(`📊 Loaded ${allTickets.length} tickets`);
+    }
   } catch (err) {
-    showToast('שגיאה בטעינה: ' + err.message, 'error');
+    showToast('❌ שגיאה בטעינה: ' + err.message, 'error');
   }
 }
 
@@ -747,19 +835,28 @@ function renderTickets() {
   }
 
   tbody.innerHTML = filtered.map(t => `
-    <tr>
+    <tr data-ticket-id="${t.id}">
       <td>
-        <div>${t.customer_name}</div>
-        <small style="color: var(--text-light);">${t.customer_phone || ''}</small>
+        <div>${sanitizeHTML(t.customer_name)}</div>
+        <small style="color: var(--text-light);">${sanitizeHTML(t.customer_phone || '')}</small>
       </td>
-      <td>${t.subject}</td>
-      <td><span class="badge badge-primary">${t.category}</span></td>
+      <td>${sanitizeHTML(t.subject)}</td>
+      <td><span class="badge badge-primary">${sanitizeHTML(t.category)}</span></td>
       <td><span class="badge badge-${t.priority === 'high' ? 'danger' : t.priority === 'medium' ? 'warning' : 'success'}">${t.priority}</span></td>
       <td>${t.status}</td>
       <td>${new Date(t.created_at).toLocaleDateString('he-IL')}</td>
-      <td><button class="btn btn-sm btn-danger" onclick="updateStatus(${t.id})">✓ סגור</button></td>
+      <td>
+        <button class="btn btn-sm btn-danger" data-ticket-id="${t.id}" onclick="updateStatus(event)">
+          ✓ סגור
+        </button>
+      </td>
     </tr>
   `).join('');
+
+  // Add event delegation for buttons
+  document.querySelectorAll('[data-ticket-id]').forEach(btn => {
+    btn.addEventListener('click', updateStatus);
+  });
 }
 
 function filterTickets(filter) {
@@ -767,15 +864,37 @@ function filterTickets(filter) {
   renderTickets();
 }
 
-async function updateStatus(id) {
+async function updateStatus(event) {
   try {
+    const user = await checkAuth();
+    if (!user) return;
+
     if (!db) return;
-    const { error } = await db.from('tickets').update({ status: 'resolved' }).eq('id', id);
+
+    // Extract ID safely from data attribute
+    const button = event.currentTarget || event.target.closest('[data-ticket-id]');
+    const id = parseInt(button?.dataset?.ticketId, 10);
+
+    if (!id || isNaN(id)) {
+      showToast('❌ שגיאה בזיהוי הפנייה', 'error');
+      return;
+    }
+
+    const { error } = await db
+      .from('tickets')
+      .update({
+        status: 'resolved',
+        resolved_at: new Date().toISOString(),
+        updated_by: user.id
+      })
+      .eq('id', id);
+
     if (error) throw error;
-    showToast('הפנייה סגורה ✅', 'success');
+
+    showToast('✅ הפנייה סגורה', 'success');
     loadTickets();
   } catch (err) {
-    showToast('שגיאה בעדכון', 'error');
+    showToast('❌ שגיאה בעדכון: ' + err.message, 'error');
   }
 }
 
@@ -794,9 +913,26 @@ function toggleTheme() {
   localStorage.setItem('theme', isDark ? 'light' : 'dark');
 }
 
-// Init
-document.documentElement.setAttribute('data-theme', localStorage.getItem('theme') || 'light');
-if (db) loadTickets();
+// === INITIALIZATION ===
+function initApp() {
+  // Set theme
+  const savedTheme = localStorage.getItem('theme') || 'light';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+
+  // Load tickets if DB connected
+  if (db) {
+    loadTickets();
+  } else {
+    showToast('❌ לא ניתן להתחבר לשרת. בדוק את הcredentials בenv.', 'error');
+  }
+}
+
+// Wait for Supabase script to load
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initApp);
+} else {
+  initApp();
+}
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
