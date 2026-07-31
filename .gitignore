@@ -218,3 +218,5 @@ __marimo__/
 .streamlit/secrets.toml
 Keys.txt
 keys.txt
+supabase/.temp/
+.env

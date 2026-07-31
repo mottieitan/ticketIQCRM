@@ -3,488 +3,1751 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>TicketIQ — ניהול פניות לקוחות</title>
+<meta name="description" content="TicketIQ - מערכת ניהול פניות לקוחות עם AI ו-Automation">
+<meta name="theme-color" content="#7c3aed">
+<title>TicketIQ — ניהול פניות לקוחות - Enterprise Edition</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="stylesheet" href="3d-effects.css">
 <style>
-  * { box-sizing: border-box; }
+:root {
+  --primary: #7c3aed;
+  --primary-light: #ede9fe;
+  --accent: #ec4899;
+  --success: #059669;
+  --danger: #e11d48;
+  --warning: #f59e0b;
+  --info: #0891b2;
+  --bg: #f5f3ff;
+  --card-bg: #ffffff;
+  --text: #1e1b3a;
+  --text-light: #6d6a8a;
+  --border: #e5dcfa;
+  --grid: 8px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --transition: all 0.2s ease-in-out;
+  --focus-ring: 0 0 0 3px rgba(124, 58, 237, 0.1);
+}
 
-  :root {
-    --primary: #1a3a8f;
-    --primary-light: #e3f2fd;
-    --bg: #f8f9fa;
-    --text: #1c2333;
-    --text-light: #6b7488;
-    --border: #e2e6ee;
-    --success: #10b981;
-    --danger: #ef4444;
-    --warning: #f59e0b;
-    --high: #fee2e2;
-    --medium: #fed7aa;
-    --low: #dcfce7;
-    --primary: #7c3aed;
-    --primary-light: #ede9fe;
-    --accent: #ec4899;
-    --brand-grad: linear-gradient(135deg, #7c3aed, #ec4899);
-    --page-grad: linear-gradient(135deg, #eef2ff 0%, #fdf2f8 50%, #ecfeff 100%);
-    --bg: #f5f3ff;
-    --text: #1e1b3a;
-    --text-light: #6d6a8a;
-    --border: #e5dcfa;
-    --success: #059669;
-    --danger: #e11d48;
-    --high: #ffd9e2;
-    --medium: #ffe9b8;
-    --low: #c9f7dd;
-    --high-bar: #e11d48;
-    --medium-bar: #f59e0b;
-    --low-bar: #10b981;
-    --card-bg: #ffffff;
+html[data-theme="dark"] {
+  --primary: #a78bfa;
+  --primary-light: #3b2a6b;
+  --bg: #16122b;
+  --card-bg: #221b40;
+  --text: #f3eeff;
+  --text-light: #c3bbdd;
+  --border: #3d3363;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background: linear-gradient(135deg, var(--bg) 0%, hsl(270, 90%, 98%) 50%, hsl(280, 85%, 96%) 100%);
+  background-attachment: fixed;
+  background-size: 200% 200%;
+  color: var(--text);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  letter-spacing: -0.3px;
+}
+
+/* PHASE 1: Accessibility & Information Hierarchy */
+a, button {
+  outline: none;
+}
+
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+button:not(:disabled) {
+  cursor: pointer;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Typography Hierarchy */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: var(--grid);
+  letter-spacing: -0.5px;
+}
+
+h1 {
+  font-size: 2.5rem;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: fadeIn 0.6s ease;
+}
+
+h2 {
+  font-size: 2rem;
+  color: var(--text);
+}
+
+h3 { font-size: 1.5rem; }
+h4 { font-size: 1.25rem; }
+h5 { font-size: 1.125rem; }
+h6 { font-size: 1rem; }
+
+p {
+  margin-bottom: var(--grid);
+  line-height: 1.7;
+  color: var(--text-light);
+}
+
+/* Spacing System (8px grid) */
+.container { max-width: 1400px; margin: 0 auto; padding: calc(var(--grid) * 3); }
+.section { padding: calc(var(--grid) * 3) 0; }
+.card { padding: calc(var(--grid) * 2); }
+
+/* Header */
+header {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+  color: white;
+  padding: calc(var(--grid) * 2.5);
+  box-shadow: 0 8px 32px 0 rgba(124, 58, 237, 0.25), 0 4px 16px 0 rgba(236, 72, 153, 0.15);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(10px);
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1400px;
+  margin: 0 auto;
+  gap: calc(var(--grid) * 2);
+}
+
+.logo {
+  font-size: 1.75rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #fff 0%, #f0f0f0 50%, #fff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -1px;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.logo:hover {
+  transform: scale(1.05);
+}
+
+.theme-toggle {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: calc(var(--grid) * 0.75) calc(var(--grid) * 1.5);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.theme-toggle:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Cards & Layout */
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.08), 0 2px 4px 0 rgba(0, 0, 0, 0.04);
+  transition: var(--transition);
+  backdrop-filter: blur(4px);
+}
+
+.card:hover {
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.15), 0 8px 16px -8px rgba(0, 0, 0, 0.08);
+  transform: translateY(-4px);
+}
+
+/* Grid System */
+.grid {
+  display: grid;
+  gap: calc(var(--grid) * 2);
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+}
+
+.grid-2 { grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); }
+.grid-3 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+
+/* Stats Cards */
+.stat-card {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+  color: white;
+  padding: calc(var(--grid) * 2.5);
+  border-radius: var(--radius-lg);
+  text-align: center;
+  box-shadow: 0 20px 40px -15px rgba(124, 58, 237, 0.4), 0 8px 16px -8px rgba(236, 72, 153, 0.3);
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+  animation: shine 3s infinite;
+}
+
+@keyframes shine {
+  0% { transform: translateX(-100%) translateY(-100%) rotate(0deg); }
+  100% { transform: translateX(100%) translateY(100%) rotate(360deg); }
+}
+
+.stat-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 30px 60px -20px rgba(124, 58, 237, 0.5), 0 12px 24px -12px rgba(236, 72, 153, 0.4);
+}
+
+.stat-value {
+  font-size: 3rem;
+  font-weight: 900;
+  margin-bottom: var(--grid);
+  position: relative;
+  z-index: 1;
+  letter-spacing: -2px;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  opacity: 0.95;
+  position: relative;
+  z-index: 1;
+  font-weight: 600;
+}
+
+/* Form Elements */
+input, select, textarea, button {
+  font: inherit;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: calc(var(--grid) * 1) calc(var(--grid) * 1.5);
+  background: var(--card-bg);
+  color: var(--text);
+  transition: var(--transition);
+}
+
+input::placeholder, textarea::placeholder {
+  color: var(--text-light);
+  opacity: 0.7;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.15);
+  background: var(--card-bg);
+}
+
+input:invalid {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 4px rgba(225, 29, 72, 0.1);
+}
+
+input:valid:not(:placeholder-shown) {
+  border-color: var(--success);
+  box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.1);
+}
+
+label {
+  display: block;
+  margin-bottom: calc(var(--grid) * 0.5);
+  font-weight: 600;
+  color: var(--text);
+  font-size: 0.9rem;
+}
+
+textarea {
+  resize: vertical;
+  min-height: calc(var(--grid) * 8);
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--grid);
+  padding: calc(var(--grid) * 1.25) calc(var(--grid) * 2);
+  border: none;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  text-decoration: none;
+  white-space: nowrap;
+  font-size: 0.95rem;
+  letter-spacing: 0.2px;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+  color: white;
+  box-shadow: 0 6px 20px -5px rgba(124, 58, 237, 0.4), 0 2px 8px -2px rgba(236, 72, 153, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.2);
+  transition: left 0.3s ease;
+}
+
+.btn-primary:hover::after {
+  left: 100%;
+}
+
+.btn-primary:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 32px -8px rgba(124, 58, 237, 0.5), 0 4px 12px -4px rgba(236, 72, 153, 0.4);
+}
+
+.btn-secondary {
+  background: var(--primary-light);
+  color: var(--primary);
+  border: 1px solid var(--primary);
+}
+
+.btn-secondary:hover {
+  background: var(--primary);
+  color: white;
+}
+
+.btn-danger {
+  background: var(--danger);
+  color: white;
+}
+
+.btn-danger:hover {
+  opacity: 0.9;
+}
+
+.btn-sm {
+  padding: calc(var(--grid) * 0.5) calc(var(--grid) * 1);
+  font-size: 0.875rem;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Badges & Tags */
+.badge {
+  display: inline-block;
+  padding: calc(var(--grid) * 0.25) calc(var(--grid) * 1);
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.badge-primary { background: var(--primary-light); color: var(--primary); }
+.badge-success { background: #d1fae5; color: var(--success); }
+.badge-danger { background: #fee2e2; color: var(--danger); }
+.badge-warning { background: #fef3c7; color: var(--warning); }
+
+/* PHASE 2: Loading & Error States */
+.loading {
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, var(--border) 25%, rgba(0,0,0,0.05) 50%, var(--border) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.empty-state {
+  text-align: center;
+  padding: calc(var(--grid) * 4);
+  color: var(--text-light);
+}
+
+.empty-state-icon {
+  font-size: 3rem;
+  margin-bottom: var(--grid);
+}
+
+/* Toast Notifications */
+.toast {
+  position: fixed;
+  bottom: calc(var(--grid) * 2);
+  right: calc(var(--grid) * 2);
+  padding: calc(var(--grid) * 1.5);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  align-items: center;
+  gap: var(--grid);
+  animation: slideIn 0.3s ease-out;
+  z-index: 1000;
+  max-width: 400px;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(400px);
+    opacity: 0;
   }
-
-  html[data-theme="dark"] {
-    --primary: #a78bfa;
-    --primary-light: #3b2a6b;
-    --accent: #f472b6;
-    --brand-grad: linear-gradient(135deg, #a78bfa, #f472b6);
-    --page-grad: linear-gradient(135deg, #1a1333 0%, #2a1338 50%, #0f2033 100%);
-    --bg: #16122b;
-    --text: #f3eeff;
-    --text-light: #c3bbdd;
-    --border: #3d3363;
-    --success: #34d399;
-    --danger: #fb7185;
-    --high: #6b1436;
-    --medium: #6d3d10;
-    --low: #0b4d3a;
-    --high-bar: #fb7185;
-    --medium-bar: #fbbf24;
-    --low-bar: #34d399;
-    --card-bg: #221b40;
+  to {
+    transform: translateX(0);
+    opacity: 1;
   }
+}
 
-  body {
-    margin: 0;
-    padding: 28px;
-    font-family: "Segoe UI", Arial, sans-serif;
-    background: var(--page-grad);
-    background-attachment: fixed;
-    color: var(--text);
-    transition: background 0.3s, color 0.3s;
+.toast-success { background: var(--success); color: white; }
+.toast-error { background: var(--danger); color: white; }
+.toast-info { background: var(--info); color: white; }
+
+/* Tooltips */
+.tooltip-trigger {
+  position: relative;
+  cursor: help;
+  border-bottom: 1px dotted var(--text-light);
+}
+
+.tooltip {
+  position: absolute;
+  background: var(--text);
+  color: white;
+  padding: calc(var(--grid) * 0.75) calc(var(--grid) * 1);
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  white-space: nowrap;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0;
+  pointer-events: none;
+  transition: var(--transition);
+  z-index: 10;
+}
+
+.tooltip-trigger:hover .tooltip {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* PHASE 3: Micro-interactions */
+.btn, .card {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  animation: ripple 0.6s ease-out forwards;
+}
+
+@keyframes ripple {
+  to {
+    width: 300px;
+    height: 300px;
+    opacity: 0;
   }
+}
 
-  .header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 28px;
-    flex-wrap: wrap;
-    gap: 16px;
+/* PHASE 4: Modal & Overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 500;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.modal-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal {
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  max-width: 500px;
+  width: 90%;
+  padding: calc(var(--grid) * 3);
+  animation: modalSlide 0.3s ease-out;
+}
+
+@keyframes modalSlide {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
   }
-
-  h1 {
-    margin: 0 0 4px;
-    font-size: 32px;
-    color: var(--primary);
-    background: var(--brand-grad);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    width: fit-content;
+  to {
+    transform: translateY(0);
+    opacity: 1;
   }
+}
 
-  .sub {
-    color: var(--text-light);
-    margin-bottom: 0;
-  }
+/* PHASE 5: Tables & Data Display */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
 
-  .theme-toggle {
-    background: var(--brand-grad);
-    color: white;
-    border: none;
-    padding: 10px 16px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 600;
-    transition: background 0.3s;
-  }
+thead {
+  background: linear-gradient(135deg, var(--primary-light) 0%, rgba(124, 58, 237, 0.05) 100%);
+  font-weight: 600;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
 
-  .theme-toggle:hover {
-    opacity: 0.9;
-  }
+th, td {
+  padding: calc(var(--grid) * 1.25) calc(var(--grid) * 1.5);
+  text-align: right;
+  border-bottom: 1px solid var(--border);
+  transition: var(--transition);
+}
 
-  .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 12px;
-    margin-bottom: 20px;
-  }
+th {
+  font-weight: 700;
+  color: var(--primary);
+}
 
-  .stat-card {
-    background: var(--card-bg);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 16px;
-    text-align: center;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  }
+tbody tr {
+  transition: var(--transition);
+  border-left: 3px solid transparent;
+}
 
-  .stat-value {
-    font-size: 24px;
-    font-weight: 700;
-    color: var(--primary);
-  }
+tbody tr:hover {
+  background: var(--primary-light);
+  border-left-color: var(--primary);
+  box-shadow: inset 0 0 0 1px rgba(124, 58, 237, 0.1);
+}
 
-  .stat-label {
-    font-size: 12px;
-    color: var(--text-light);
-    margin-top: 4px;
-  }
+tbody tr:focus-within {
+  outline: 2px solid var(--primary);
+  outline-offset: -1px;
+}
 
-  .card {
-    /* gradient border that keeps the rounded corners */
-    background: linear-gradient(var(--card-bg), var(--card-bg)) padding-box,
-                var(--brand-grad) border-box;
-    border: 2px solid transparent;
-    border-radius: 12px;
-    padding: 20px;
-    margin-bottom: 20px;
-    box-shadow: 0 4px 16px rgba(124, 58, 237, 0.12);
-  }
+/* Row status indicators */
+tbody tr[data-status="open"] {
+  border-left-color: var(--danger);
+}
 
-  .form-group {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 12px;
-    margin-bottom: 12px;
-  }
+tbody tr[data-status="pending"] {
+  border-left-color: var(--warning);
+}
 
-  form {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-  }
+tbody tr[data-status="resolved"] {
+  border-left-color: var(--success);
+}
 
-  input, select, button, textarea {
-    font: inherit;
-    padding: 12px 14px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    background: var(--card-bg);
-    color: var(--text);
-    transition: border-color 0.3s, background 0.3s;
-  }
+/* PHASE 6: Mobile First */
+@media (max-width: 640px) {
+  .container { padding: calc(var(--grid) * 2); }
+  h1 { font-size: 1.75rem; }
+  h2 { font-size: 1.5rem; }
+  .grid, .grid-2, .grid-3 { grid-template-columns: 1fr; }
+  .header-content { flex-direction: column; }
+  .toast { right: var(--grid); left: var(--grid); }
+  table { font-size: 0.75rem; }
+}
 
-  input:focus, select:focus, textarea:focus {
-    outline: none;
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px var(--primary-light);
-  }
+/* Dark Mode */
+html[data-theme="dark"] {
+  color-scheme: dark;
+}
 
-  input::placeholder, textarea::placeholder {
-    color: var(--text-light);
-  }
+/* PHASE 7: Print Styles */
+@media print {
+  header, .no-print { display: none; }
+  body { background: white; }
+  a { text-decoration: underline; }
+}
 
-  input {
-    flex: 1 1 200px;
-  }
+/* Advanced Animations */
+.fade-in {
+  animation: fadeIn 0.3s ease-in;
+}
 
-  form button {
-    background: var(--brand-grad);
-    color: white;
-    border-color: transparent;
-    cursor: pointer;
-    font-weight: 600;
-    padding: 12px 24px;
-    min-width: 140px;
-    box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);
-  }
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
 
-  form button:hover {
-    filter: brightness(1.1);
-  }
+.slide-in-right {
+  animation: slideInRight 0.4s ease-out;
+}
 
-  .controls {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 16px;
-    flex-wrap: wrap;
-  }
-
-  .search-box {
-    flex: 1;
-    min-width: 200px;
-  }
-
-  .filter-controls, .action-controls {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-
-  .filter-controls button, .action-controls button {
-    background: var(--primary-light);
-    color: var(--primary);
-    border-color: var(--primary);
-    padding: 10px 14px;
-    font-size: 13px;
-    flex: 0 1 auto;
-  }
-
-  .filter-controls button.active, .action-controls button.active {
-    background: var(--primary);
-    color: white;
-  }
-
-  .filter-controls button:hover, .action-controls button:hover {
-    background: var(--primary);
-    color: white;
-  }
-
-  table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-
-  th, td {
-    text-align: right;
-    padding: 14px;
-    border-bottom: 1px solid var(--border);
-  }
-
-  th {
-    color: white;
-    font-size: 13px;
-    font-weight: 700;
-    background: var(--brand-grad);
-    cursor: pointer;
-    user-select: none;
-  }
-
-  th:hover {
-    filter: brightness(1.15);
-  }
-
-  tr.גבוהה td { background: var(--high); }
-  tr.בינונית td { background: var(--medium); }
-  tr.נמוכה td { background: var(--low); }
-
-  /* colored priority bar on the row edge (rtl: right side) */
-  tr.גבוהה td:first-child { border-inline-start: 5px solid var(--high-bar); }
-  tr.בינונית td:first-child { border-inline-start: 5px solid var(--medium-bar); }
-  tr.נמוכה td:first-child { border-inline-start: 5px solid var(--low-bar); }
-
-  td button {
-    padding: 8px 14px;
-    font-size: 13px;
-    background: linear-gradient(135deg, #10b981, #06b6d4);
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 600;
-    transition: background 0.3s;
-    margin-left: 4px;
-  }
-
-  td button:hover {
-    filter: brightness(1.1);
-  }
-
-  .closed {
-    color: var(--text-light);
-    font-size: 13px;
-  }
-
-  .status-badge {
-    display: inline-block;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 12px;
-    font-weight: 600;
-  }
-
-  .status-פתוח { background: #dcfce7; color: #166534; }
-  .status-בטיפול { background: #fef3c7; color: #92400e; }
-  .status-ממתין { background: #fed7aa; color: #7c2d12; }
-  .status-סגור { background: #f1f5f9; color: #475569; }
-
-  .time-metric {
-    font-size: 12px;
-    color: var(--text-light);
-  }
-
-  .msg {
-    color: var(--danger);
-    margin-bottom: 12px;
-    padding: 12px;
-    border-radius: 6px;
-    display: none;
-  }
-
-  .msg.success {
-    color: var(--success);
-    background: var(--low);
-  }
-
-  .msg.error {
-    background: var(--high);
-  }
-
-  .msg.warning {
-    color: #92400e;
-    background: #fef3c7;
-  }
-
-  .empty-state {
-    text-align: center;
-    color: var(--text-light);
-    padding: 40px 20px;
-  }
-
-  .category-tag {
-    display: inline-block;
-    background: var(--primary-light);
-    color: var(--primary);
-    padding: 4px 10px;
-    border-radius: 12px;
-    font-size: 12px;
-    margin: 2px;
-  }
-
-  @media (max-width: 768px) {
-    .header {
-      flex-direction: column;
-      align-items: flex-start;
-    }
-
-    .form-group {
-      grid-template-columns: 1fr;
-    }
-
-    form {
-      flex-direction: column;
-    }
-
-    form input, form select, form button, form textarea {
-      width: 100%;
-    }
-
-    .controls {
-      flex-direction: column;
-    }
-
-    .filter-controls, .action-controls {
-      width: 100%;
-    }
-
-    .stats-grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
-
-    th, td {
-      padding: 10px;
-      font-size: 13px;
-    }
-  }
+@keyframes slideInRight {
+  from { transform: translateX(20px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
 </style>
 </head>
 <body>
 
-<div class="header">
-  <div>
-    <h1>🎫 TicketIQ</h1>
-    <div class="sub">מערכת לניהול פניות לקוחות מתקדמת</div>
+<header>
+  <div class="header-content">
+    <div class="logo">🎫 TicketIQ</div>
+    <nav aria-label="Main">
+      <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark mode">
+        🌙 ערכת נושא
+      </button>
+    </nav>
   </div>
-  <button class="theme-toggle" onclick="toggleTheme()">🌙 ערכת נושא</button>
-</div>
+</header>
 
-<div class="stats-grid" id="stats"></div>
+<main class="container">
 
-<div class="card">
-  <h3 style="margin-top:0;">הוסף פנייה חדשה</h3>
-  <form id="add">
-    <div style="flex:1;">
-      <input name="customer_name" placeholder="שם הלקוח" required>
+<section class="section">
+  <h1>TicketIQ - Enterprise Edition</h1>
+  <p class="text-light">מערכת ניהול פניות לקוחות מתקדמת עם AI, Automation, ו-Analytics</p>
+</section>
+
+<section class="section">
+  <h2>📊 סטטיסטיקות בזמן אמת</h2>
+  <div class="grid" id="statsContainer">
+    <div class="stat-card">
+      <div class="stat-value" id="stat-open" style="font-size: 3rem; font-weight: 900;">0</div>
+      <div class="stat-label">🔴 פעילות</div>
     </div>
-    <div style="flex:1;">
-      <input name="phone" placeholder="טלפון" type="tel">
+    <div class="stat-card">
+      <div class="stat-value" id="stat-pending" style="font-size: 3rem; font-weight: 900;">0</div>
+      <div class="stat-label">⚠️ בטיפול</div>
     </div>
-    <div style="flex:1;">
-      <input name="subject" placeholder="נושא הפנייה" required>
+    <div class="stat-card">
+      <div class="stat-value" id="stat-resolved" style="font-size: 3rem; font-weight: 900;">0</div>
+      <div class="stat-label">✅ סגורות</div>
     </div>
-    <div style="flex:0 1 auto;">
-      <select name="priority">
-        <option>גבוהה</option><option selected>בינונית</option><option>נמוכה</option>
-      </select>
+    <div class="stat-card">
+      <div class="stat-value" id="stat-total" style="font-size: 3rem; font-weight: 900;">0</div>
+      <div class="stat-label">📈 סה"כ</div>
     </div>
-    <div style="flex:0 1 auto;">
-      <select name="category">
-        <option value="">בחר קטגוריה</option>
-        <option>טכני</option><option>חיוב</option><option>משלוח</option><option>מוצר</option><option>אחר</option>
-      </select>
+  </div>
+</section>
+
+<main id="main-content">
+<section class="section card fade-in form-section" role="region" aria-label="טופס הוספת פנייה חדשה">
+  <div class="form-header">
+    <div class="form-title-group">
+      <h1>TicketIQ</h1>
+      <h2>📝 פנייה חדשה</h2>
     </div>
-    <button type="submit" style="flex:0 1 auto;">➕ הוסף</button>
+    <div class="form-progress">
+      <span class="progress-step active">1️⃣ פרטי בסיסיים</span>
+      <span class="progress-arrow">→</span>
+      <span class="progress-step">2️⃣ פרטי הבעיה</span>
+      <span class="progress-arrow">→</span>
+      <span class="progress-step">3️⃣ סיכום</span>
+    </div>
+  </div>
+
+  <form id="ticketForm" onsubmit="handleSubmit(event)" aria-label="טופס יצירת פנייה חדשה" class="modern-form">
+    <!-- Section 1: Contact Info -->
+    <div class="form-section-group">
+      <div class="section-header">
+        <span class="section-icon">👤</span>
+        <h3>פרטי איש הקשר</h3>
+      </div>
+      <div class="form-grid-3">
+        <div class="form-group">
+          <label for="customer">👤 שם הלקוח <span class="required">*</span></label>
+          <input type="text" id="customer" name="customer" required aria-label="שם הלקוח" placeholder="שם מלא">
+        </div>
+        <div class="form-group">
+          <label for="phone">📞 טלפון</label>
+          <input type="tel" id="phone" name="phone" aria-label="מספר טלפון" placeholder="050-1234567">
+        </div>
+        <div class="form-group">
+          <label for="email">📧 דוא״ל <span class="required">*</span></label>
+          <input type="email" id="email" name="email" required aria-label="כתובת דוא״ל" placeholder="user@example.com">
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 2: Issue Details -->
+    <div class="form-section-group">
+      <div class="section-header">
+        <span class="section-icon">💬</span>
+        <h3>פרטי הבעיה</h3>
+      </div>
+      <div class="form-group full-width">
+        <label for="subject">📌 נושא הפנייה <span class="required">*</span></label>
+        <input type="text" id="subject" name="subject" required aria-label="נושא הפנייה" placeholder="תיאור קצר של הבעיה">
+      </div>
+      <div class="form-group full-width">
+        <label for="description">📝 תיאור מפורט <span class="required">*</span></label>
+        <textarea id="description" name="description" placeholder="תיאור מלא של הבעיה, השלבים לשחזור, וכו'..." aria-label="תיאור הפנייה" style="min-height: 120px; resize: vertical;"></textarea>
+      </div>
+    </div>
+
+    <!-- Section 3: Classification -->
+    <div class="form-section-group">
+      <div class="section-header">
+        <span class="section-icon">🏷️</span>
+        <h3>סיווג ועדיפויות</h3>
+      </div>
+      <div class="form-grid-3">
+        <div class="form-group">
+          <label for="category">📂 קטגוריה <span class="required">*</span></label>
+          <select id="category" name="category" required aria-label="בחר קטגוריה">
+            <option value="">בחר קטגוריה</option>
+            <option value="technical">🔧 טכני</option>
+            <option value="billing">💳 חיוב</option>
+            <option value="shipping">📦 משלוח</option>
+            <option value="product">🛍️ מוצר</option>
+            <option value="other">❓ אחר</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="priority">⚡ עדיפות <span class="required">*</span></label>
+          <select id="priority" name="priority" required aria-label="בחר עדיפות">
+            <option value="">בחר עדיפות</option>
+            <option value="high">🔥 גבוהה</option>
+            <option value="medium">📌 בינונית</option>
+            <option value="low">💤 נמוכה</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="assignee">👥 הקצה ל-</label>
+          <select id="assignee" name="assignee" aria-label="הקצה ל-משתמש">
+            <option value="">🤖 אוטומטי</option>
+            <option value="team1">👨‍💼 צוות 1</option>
+            <option value="team2">👩‍💼 צוות 2</option>
+            <option value="team3">👨‍🔧 צוות 3</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary btn-large">
+        ✅ שלח פנייה
+      </button>
+      <button type="reset" class="btn btn-secondary btn-large">
+        🔄 נקה טופס
+      </button>
+    </div>
   </form>
-</div>
+</section>
 
-<div class="card">
-  <div id="msg" class="msg"></div>
-
-  <div class="controls">
-    <input type="text" id="search" class="search-box" placeholder="🔍 חפש לפי שם, נושא, טלפון או קטגוריה...">
-    <div class="filter-controls">
-      <button onclick="filterStatus('all')" class="active">📊 הכל</button>
-      <button onclick="filterStatus('פתוח')">🟢 פתוח</button>
-      <button onclick="filterStatus('בטיפול')">🟡 בטיפול</button>
-      <button onclick="filterStatus('ממתין')">🟠 ממתין</button>
-      <button onclick="filterStatus('סגור')">⚫ סגור</button>
-    </div>
-    <div class="action-controls">
-      <button onclick="exportCSV()">📥 ייצוא CSV</button>
-      <button onclick="sortTable('created_at')">📅 תאריך</button>
-      <button onclick="sortTable('priority')">⬆️ עדיפות</button>
+<section class="section">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+    <h2>📋 פניות בעיבוד</h2>
+    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
+      <label for="sortDropdown" style="display: flex; align-items: center; gap: 0.5rem; font-weight: 600; color: var(--text); font-size: 0.9rem;">🔀 מיון:</label>
+      <select id="sortDropdown" onchange="sortTickets(this.value)" style="padding: 0.75rem 1rem; border: 1px solid var(--border); border-radius: var(--radius-md); background: white !important; color: #1e1b3a !important; font-size: 0.9rem; font-weight: 500;">
+        <option value="" style="background: white; color: #1e1b3a;">🔀 סדר ברירת מחדל</option>
+        <option value="name-asc" style="background: white; color: #1e1b3a;">👤 שם (א-ת)</option>
+        <option value="name-desc" style="background: white; color: #1e1b3a;">👤 שם (ת-א)</option>
+        <option value="date-new" style="background: white; color: #1e1b3a;">📅 חדש ביותר</option>
+        <option value="date-old" style="background: white; color: #1e1b3a;">📅 ישן ביותר</option>
+        <option value="priority-high" style="background: white; color: #1e1b3a;">⚡ עדיפות גבוהה</option>
+        <option value="priority-low" style="background: white; color: #1e1b3a;">💤 עדיפות נמוכה</option>
+        <option value="status" style="background: white; color: #1e1b3a;">🔀 סטטוס</option>
+        <option value="category" style="background: white; color: #1e1b3a;">📂 קטגוריה</option>
+      </select>
+      <button class="btn btn-sm btn-primary filter-btn" onclick="filterTickets('all')">📊 הכל</button>
+      <button class="btn btn-sm btn-secondary filter-btn" onclick="filterTickets('פתוח')">🔴 פתוחות</button>
+      <button class="btn btn-sm btn-secondary filter-btn" onclick="filterTickets('בטיפול')">⚠️ בטיפול</button>
+      <button class="btn btn-sm btn-secondary filter-btn" onclick="filterTickets('סגור')">✅ סגורות</button>
     </div>
   </div>
 
-  <table>
-    <thead>
-      <tr>
-        <th>לקוח</th>
-        <th>טלפון</th>
-        <th>נושא</th>
-        <th>קטגוריה</th>
-        <th>עדיפות</th>
-        <th>סטטוס</th>
-        <th>זמן</th>
-        <th>פעולות</th>
-      </tr>
-    </thead>
-    <tbody id="rows"></tbody>
-  </table>
-</div>
+  <div class="card slide-in-right">
+    <div style="margin-bottom: 1rem; display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
+      <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+        <input type="checkbox" id="selectAllTickets" onchange="toggleSelectAll(this.checked)" style="width: 18px; height: 18px; cursor: pointer;">
+        <span>בחר הכל</span>
+      </label>
+      <span id="selectedCount" style="color: var(--text-light);">בחר 0</span>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+      <div style="border-left: 1px solid var(--border); height: 24px; margin: 0 0.5rem;"></div>
+
+      <select id="bulkStatusSelect" style="padding: 0.5rem; border: 1px solid var(--border); border-radius: var(--radius-sm);">
+        <option value="">בחר סטטוס...</option>
+        <option value="פתוח">פתוח</option>
+        <option value="בטיפול">בטיפול</option>
+        <option value="סגור">סגור</option>
+      </select>
+      <button class="btn btn-sm btn-primary" onclick="applyBulkStatusUpdate()">עדכן סטטוס</button>
+      <button class="btn btn-sm btn-danger" onclick="applyBulkDelete()">🗑️ מחק</button>
+      <button class="btn btn-sm btn-secondary" onclick="clearBulkSelection()">נקה בחירה</button>
+    </div>
+    <div class="tickets-table-wrapper">
+      <table id="ticketsTable">
+        <thead>
+          <tr>
+            <th style="width: 30px;"></th>
+            <th>לקוח</th>
+            <th>נושא</th>
+            <th>קטגוריה</th>
+            <th>עדיפות</th>
+            <th>סטטוס</th>
+            <th>זמן</th>
+            <th>פעולות</th>
+          </tr>
+        </thead>
+        <tbody id="ticketsBody">
+          <tr>
+            <td colspan="7" class="empty-state">
+              <div class="empty-state-icon">📭</div>
+              <p>אין פניות להצגה</p>
+              <small>הוסף פנייה כדי להתחיל</small>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+</main>
+
 <script>
-const db = supabase.createClient(
-  'https://skhuhvxqmawbjvifvxnz.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNraHVodnhxbWF3Ymp2aWZ2eG56Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0Nzc5OTAsImV4cCI6MjEwMTA1Mzk5MH0.Yq4uUfx6AmpkLhu7trFUVnhYYdANBLL-kyx85CST1AM'
-);
+// ⚠️ SECURITY: Load Supabase credentials
+// For Vite: use import.meta.env (requires module script)
+// For plain HTML: use window object or hardcoded values (for development only)
 
-const rows = document.getElementById('rows');
-const msg = document.getElementById('msg');
-const searchBox = document.getElementById('search');
-const statsDiv = document.getElementById('stats');
-const esc = s => String(s ?? '').replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
+const SUPABASE_URL = window.__SUPABASE_URL__ || 'https://skhuhvxqmawbjvifvxnz.supabase.co';
+const SUPABASE_KEY = window.__SUPABASE_KEY__ || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNraHVodnhxbWF3Ymp2aWZ2eG56Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0Nzc5OTAsImV4cCI6MjEwMTA1Mzk5MH0.Yq4uUfx6AmpkLhu7trFUVnhYYdANBLL-kyx85CST1AM';
+
+// TODO: Remove hardcoded key and use environment variables in production
+if (!SUPABASE_URL || !SUPABASE_KEY) {
+  console.error('❌ Missing Supabase credentials');
+  alert('❌ Error: Supabase credentials not configured');
+}
+
+const db = SUPABASE_URL && SUPABASE_KEY ? supabase?.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 
 let allTickets = [];
-let currentSort = 'created_at';
-let currentStatusFilter = 'all';
+let currentFilter = 'all';
+let currentSort = '';
+let currentUser = null;
 
-function showMessage(text, type = 'error') {
-  msg.textContent = text;
-  msg.className = type;
-  msg.style.display = 'block';
-  setTimeout(() => { msg.style.display = 'none'; }, 4000);
+// === INPUT VALIDATION ===
+function sanitizeHTML(str) {
+  if (typeof str !== 'string') return '';
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function validateTicketData(data) {
+  const errors = [];
+
+  if (!data.customer?.trim()) errors.push('שם לקוח חובה');
+  if (!data.subject?.trim()) errors.push('נושא חובה');
+  if (!data.email?.trim()) errors.push('דוא״ל חובה');
+  if (!data.category) errors.push('קטגוריה חובה');
+  if (!data.priority) errors.push('עדיפות חובה');
+
+  if (data.customer && data.customer.length > 255) errors.push('שם לקוח ארוך מדי');
+  if (data.subject && data.subject.length > 500) errors.push('נושא ארוך מדי');
+  if (data.description && data.description.length > 5000) errors.push('תיאור ארוך מדי');
+  if (data.email && data.email.length > 254) errors.push('דוא״ל ארוך מדי');
+
+  // Email validation
+  if (data.email && !window.isValidEmail(data.email)) {
+    errors.push('כתובת דוא״ל לא תקינה');
+  }
+
+  // Phone validation (if provided)
+  if (data.phone && !window.isValidIsraeliPhone(data.phone)) {
+    errors.push('מספר טלפון לא תקין. השתמש בפורמט: 0501234567');
+  }
+
+  const validStatuses = ['open', 'pending', 'resolved', 'closed'];
+  const validPriorities = ['high', 'medium', 'low'];
+  const validCategories = ['technical', 'billing', 'shipping', 'product', 'other'];
+
+  if (!validPriorities.includes(data.priority)) errors.push('עדיפות לא תקינה');
+  if (!validCategories.includes(data.category)) errors.push('קטגוריה לא תקינה');
+
+  if (errors.length > 0) throw new Error(errors.join(', '));
+
+  return {
+    customer: sanitizeHTML(data.customer.trim()),
+    phone: sanitizeHTML(data.phone?.trim() || ''),
+    email: sanitizeHTML(data.email.trim()),
+    subject: sanitizeHTML(data.subject.trim()),
+    description: sanitizeHTML(data.description?.trim() || ''),
+    category: data.category,
+    priority: data.priority
+  };
+}
+
+// === AUTHENTICATION CHECK ===
+// For Anon key without auth, generate a temporary user ID or use browser ID
+async function checkAuth() {
+  if (!db) {
+    showToast('❌ שגיאה בחיבור לשרת', 'error');
+    return null;
+  }
+
+  try {
+    // Try to get session if auth is enabled
+    const { data: { session }, error } = await db.auth.getSession();
+
+    if (session?.user) {
+      currentUser = session.user;
+      return session.user;
+    }
+
+    // If no session (using Anon key), create a temporary user object
+    // In production, implement proper auth or use device ID
+    if (!currentUser) {
+      let userId = localStorage.getItem('anon-user-id');
+
+      // Clean up old format - remove ALL 'anon-' prefixes
+      if (userId) {
+        userId = userId.replace(/^anon-+/, ''); // Remove one or more 'anon-' prefixes
+        if (!userId) {
+          localStorage.removeItem('anon-user-id');
+          userId = null;
+        } else {
+          localStorage.setItem('anon-user-id', userId);
+        }
+      }
+
+      // If no stored ID, generate new one
+      if (!userId) {
+        userId = generateUUID();
+        localStorage.setItem('anon-user-id', userId);
+      }
+
+      currentUser = {
+        id: userId, // Use clean UUID without any prefix
+        email: 'anonymous@ticketiq.local'
+      };
+
+      console.log('👤 Anonymous user ID:', currentUser.id, '(length:', currentUser.id.length, ')');
+    }
+
+    return currentUser;
+  } catch (err) {
+    console.error('❌ Auth error:', err);
+    // If auth fails, use anonymous mode
+    if (!currentUser) {
+      let userId = localStorage.getItem('anon-user-id');
+
+      // Clean up old format - remove ALL 'anon-' prefixes
+      if (userId) {
+        userId = userId.replace(/^anon-+/, ''); // Remove one or more 'anon-' prefixes
+        if (!userId) {
+          localStorage.removeItem('anon-user-id');
+          userId = null;
+        } else {
+          localStorage.setItem('anon-user-id', userId);
+        }
+      }
+
+      if (!userId) {
+        userId = generateUUID();
+        localStorage.setItem('anon-user-id', userId);
+      }
+
+      currentUser = {
+        id: userId,
+        email: 'anonymous@ticketiq.local'
+      };
+    }
+    return currentUser;
+  }
+}
+
+// Generate UUID for anonymous users
+function generateUUID() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0,
+          v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
+async function handleSubmit(e) {
+  e.preventDefault();
+
+  try {
+    if (!db) {
+      showToast('❌ חיבור לשרת לא זמין', 'error');
+      return;
+    }
+
+    const formData = new FormData(e.target);
+    const data = Object.fromEntries(formData);
+
+    const validatedData = validateTicketData(data);
+    const user = await checkAuth();
+
+    // Show loading state
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    submitBtn.disabled = true;
+    submitBtn.textContent = '⏳ שליחה...';
+
+    const { error } = await db.from('tickets').insert([{
+      customer_name: validatedData.customer,
+      customer_phone: validatedData.phone,
+      customer_email: validatedData.email || user?.email || 'anonymous@ticketiq.local',
+      subject: validatedData.subject,
+      category: validatedData.category,
+      priority: validatedData.priority,
+      status: 'פתוח', // Use Hebrew status
+      assigned_to: null, // validatedData.assignee || null,
+      description: validatedData.description,
+      tags: [],
+      attachments: [],
+      // Note: created_by NOT included - anonymous users don't have team_members entry
+      notes: ''
+    }]);
+
+    if (error) {
+      console.error('🔴 Insert error details:', {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+        fullError: JSON.stringify(error)
+      });
+      throw new Error(`Insert failed: ${error.message || JSON.stringify(error)}`);
+    }
+
+    showToast('✅ הפנייה נוספה בהצלחה', 'success');
+    e.target.reset();
+
+    // Reload tickets
+    setTimeout(() => loadTickets(), 500);
+
+  } catch (err) {
+    console.error('🔴 Submit error details:', err.message || err);
+    showToast('❌ שגיאה: ' + (err.message || JSON.stringify(err)), 'error');
+  } finally {
+    const submitBtn = e.target?.querySelector('button[type="submit"]');
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = '➕ הוסף פנייה';
+    }
+  }
+}
+
+async function loadTickets() {
+  try {
+    if (!db) {
+      showToast('❌ חיבור לShרת לא זמין', 'error');
+      return;
+    }
+
+    // Check auth (will use anon if needed)
+    const user = await checkAuth();
+
+    // Load all tickets (no auth requirement for anon key)
+    const { data, error } = await db
+      .from('tickets')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(100);
+
+    if (error) {
+      console.error('🔴 Database error:', error);
+      showToast('❌ שגיאה בטעינה: ' + error.message, 'error');
+      return;
+    }
+
+    allTickets = data || [];
+    renderTickets();
+
+    console.log(`✅ Loaded ${allTickets.length} tickets`);
+  } catch (err) {
+    console.error('🔴 Load error:', err);
+    showToast('❌ שגיאה בטעינה: ' + err.message, 'error');
+  }
+}
+
+function updateStats() {
+  console.log('📊 updateStats called, allTickets.length:', allTickets?.length);
+
+  if (!allTickets || allTickets.length === 0) {
+    console.warn('⚠️ No tickets available');
+    return;
+  }
+
+  // Debug: Show all unique statuses
+  const uniqueStatuses = [...new Set(allTickets.map(t => t.status))];
+  console.log('📋 Unique statuses in DB:', uniqueStatuses.join(', '));
+
+  // Calculate stats - count tickets by status
+  const stats = {
+    open: (allTickets || []).filter(t => t.status === 'פתוח').length,
+    pending: (allTickets || []).filter(t => t.status === 'בטיפול').length,
+    resolved: (allTickets || []).filter(t => t.status === 'פתור').length,
+    closed: (allTickets || []).filter(t => t.status === 'סגור').length,
+    total: (allTickets || []).length
+  };
+
+  // Display open + pending as "active"
+  const activeCount = stats.open + stats.pending;
+  const completedCount = stats.resolved + stats.closed;
+
+  console.log('📊 Calculated Stats:', { open: stats.open, pending: stats.pending, resolved: stats.resolved, closed: stats.closed, total: stats.total });
+
+  // Update DOM elements
+  const displayStats = {
+    'stat-open': activeCount, // Show active tickets (open + pending)
+    'stat-pending': stats.pending,
+    'stat-resolved': completedCount, // Show completed (resolved + closed)
+    'stat-total': stats.total
+  };
+
+  for (const [id, value] of Object.entries(displayStats)) {
+    const el = document.getElementById(id);
+    if (el) {
+      const oldValue = el.textContent;
+      el.textContent = String(value);
+      console.log(`✅ Updated ${id}: ${oldValue} → ${value}`);
+    } else {
+      console.warn(`⚠️ Element #${id} not found`);
+    }
+  }
+}
+
+function renderTickets() {
+  console.log('🔄 Rendering tickets...', { total: allTickets.length, filtered: allTickets.filter(t => currentFilter === 'all' || t.status === currentFilter).length });
+
+  // Update stats FIRST
+  updateStats();
+
+  let filtered = allTickets.filter(t => currentFilter === 'all' || t.status === currentFilter);
+  filtered = getSortedTickets(filtered);
+  const tbody = document.getElementById('ticketsBody');
+
+  if (!tbody) {
+    console.error('❌ ticketsBody not found');
+    return;
+  }
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="7" class="empty-state">
+          <div class="empty-state-icon">📭</div>
+          <p>אין פניות להצגה</p>
+          <small>${currentFilter === 'all' ? 'הוסף פנייה כדי להתחיל' : 'אין פניות במצב זה'}</small>
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(t => {
+    const statusEmoji = {
+      'open': '🔴',
+      'pending': '⚠️',
+      'resolved': '✅',
+      'closed': '⭕'
+    }[t.status] || '❓';
+
+    const priorityEmoji = {
+      'high': '🔥',
+      'medium': '📌',
+      'low': '💤'
+    }[t.priority] || '📍';
+
+    return `
+      <tr data-ticket-id="${t.id}" style="cursor: pointer; transition: var(--transition);" onmouseover="this.style.backgroundColor='var(--primary-light)'" onmouseout="this.style.backgroundColor=''">
+        <td style="width: 30px;">
+          <input type="checkbox" class="ticket-checkbox" data-ticket-id="${t.id}" onchange="updateSelectedCount()" style="width: 18px; height: 18px; cursor: pointer;">
+        </td>
+        <td onclick="viewTicketDetails(${t.id})" style="cursor: pointer;">
+          <div style="font-weight: 600;">${sanitizeHTML(t.customer_name)}</div>
+          <small style="color: var(--text-light);">📞 ${sanitizeHTML(t.customer_phone || 'אין')}</small>
+        </td>
+        <td onclick="viewTicketDetails(${t.id})" style="cursor: pointer;">
+          <div>${sanitizeHTML(t.subject.substring(0, 40))}${t.subject.length > 40 ? '...' : ''}</div>
+          <small style="color: var(--text-light);">#${t.id}</small>
+        </td>
+        <td><span class="badge badge-primary">${sanitizeHTML(t.category)}</span></td>
+        <td><span style="font-size: 1.2em; margin-left: 0.5rem;">${priorityEmoji}</span> ${t.priority}</td>
+        <td><span style="font-size: 1.2em; margin-left: 0.5rem;">${statusEmoji}</span> ${t.status}</td>
+        <td>
+          <small>${new Date(t.created_at).toLocaleDateString('he-IL')}</small>
+          <br>
+          <small style="color: var(--text-light);">${new Date(t.created_at).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}</small>
+        </td>
+        <td>
+          <div style="display: flex; gap: 0.25rem; flex-wrap: wrap; align-items: center;">
+            ${t.status === 'פתוח' ? `<button class="btn btn-sm btn-warning" onclick="updateTicketStatusTo('בטיפול', ${t.id})" style="font-size: 0.75rem; padding: 0.375rem 0.75rem;">⚠️ בטיפול</button>` : ''}
+            ${t.status !== 'סגור' ? `<button class="btn btn-sm btn-danger" onclick="updateTicketStatusTo('סגור', ${t.id})" style="font-size: 0.75rem; padding: 0.375rem 0.75rem;">✓ סגור</button>` : ''}
+            ${t.status === 'סגור' ? `<button class="btn btn-sm btn-primary" onclick="updateTicketStatusTo('פתוח', ${t.id})" style="font-size: 0.75rem; padding: 0.375rem 0.75rem;">🔄 פתח מחדש</button>` : ''}
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function filterTickets(filter) {
+  currentFilter = filter;
+
+  // Update button styles
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.classList.remove('btn-primary');
+    btn.classList.add('btn-secondary');
+  });
+  event.target.classList.remove('btn-secondary');
+  event.target.classList.add('btn-primary');
+
+  renderTickets();
+}
+
+function sortTickets(sortOption) {
+  currentSort = sortOption;
+  renderTickets();
+}
+
+function getSortedTickets(tickets) {
+  if (!currentSort) return tickets;
+
+  const sorted = [...tickets];
+
+  switch(currentSort) {
+    case 'name-asc':
+      sorted.sort((a, b) => (a.customer_name || '').localeCompare(b.customer_name || '', 'he'));
+      break;
+    case 'name-desc':
+      sorted.sort((a, b) => (b.customer_name || '').localeCompare(a.customer_name || '', 'he'));
+      break;
+    case 'date-new':
+      sorted.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      break;
+    case 'date-old':
+      sorted.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+      break;
+    case 'priority-high':
+      const priorityOrder = { 'high': 1, 'medium': 2, 'low': 3 };
+      sorted.sort((a, b) => (priorityOrder[a.priority] || 999) - (priorityOrder[b.priority] || 999));
+      break;
+    case 'priority-low':
+      const priorityOrderReverse = { 'low': 1, 'medium': 2, 'high': 3 };
+      sorted.sort((a, b) => (priorityOrderReverse[a.priority] || 999) - (priorityOrderReverse[b.priority] || 999));
+      break;
+    case 'status':
+      sorted.sort((a, b) => (a.status || '').localeCompare(b.status || '', 'he'));
+      break;
+    case 'category':
+      sorted.sort((a, b) => (a.category || '').localeCompare(b.category || '', 'he'));
+      break;
+  }
+
+  return sorted;
+}
+
+function viewTicketDetails(ticketId) {
+  const ticket = allTickets.find(t => t.id === ticketId);
+  if (!ticket) return;
+
+  const priorityEmoji = {
+    'high': '🔥',
+    'medium': '📌',
+    'low': '💤'
+  }[ticket.priority] || '📍';
+
+  const statusEmoji = {
+    'פתוח': '🔴',
+    'בטיפול': '⚠️',
+    'סגור': '✅',
+    'open': '🔴',
+    'pending': '⚠️',
+    'resolved': '✅',
+    'closed': '⭕'
+  }[ticket.status] || '❓';
+
+  const details = `
+    <h3>${sanitizeHTML(ticket.subject)}</h3>
+    <div style="display: grid; gap: 1rem; margin: 1.5rem 0;">
+      <div><strong>🆔 מזהה:</strong> #${ticket.id}</div>
+      <div><strong>👤 לקוח:</strong> ${sanitizeHTML(ticket.customer_name)}</div>
+      <div><strong>📞 טלפון:</strong> ${sanitizeHTML(ticket.customer_phone || 'לא מצוין')}</div>
+      <div><strong>📧 מייל:</strong> ${sanitizeHTML(ticket.customer_email || 'לא מצוין')}</div>
+      <div><strong>📂 קטגוריה:</strong> ${sanitizeHTML(ticket.category)}</div>
+      <div><strong>⚡ עדיפות:</strong> ${priorityEmoji} ${ticket.priority}</div>
+      <div><strong>📍 סטטוס:</strong> ${statusEmoji} ${ticket.status}</div>
+      <div><strong>📅 תאריך יצירה:</strong> ${new Date(ticket.created_at).toLocaleString('he-IL')}</div>
+      <div><strong>📝 תיאור:</strong></div>
+      <div style="background: var(--primary-light); padding: 1rem; border-radius: var(--radius-md); white-space: pre-wrap;">
+        ${sanitizeHTML(ticket.description || 'אין תיאור')}
+      </div>
+      ${ticket.resolved_at ? `<div><strong>✅ סגור ב:</strong> ${new Date(ticket.resolved_at).toLocaleString('he-IL')}</div>` : ''}
+      ${ticket.notes ? `<div><strong>📌 הערות:</strong> ${sanitizeHTML(ticket.notes)}</div>` : ''}
+    </div>
+  `;
+
+  // Show modal with action buttons
+  const modal = document.createElement('div');
+  modal.className = 'modal-overlay active';
+  modal.id = `ticket-modal-${ticket.id}`;
+  modal.innerHTML = `
+    <div class="modal" style="max-width: 600px; max-height: 80vh; overflow-y: auto;">
+      ${details}
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 1rem; margin-top: 2rem;">
+        ${ticket.status !== 'בטיפול' && ticket.status !== 'סגור' ? `<button class="btn btn-secondary" onclick="updateTicketStatusTo('בטיפול', ${ticket.id})">⚠️ בטיפול</button>` : ''}
+        ${ticket.status !== 'סגור' ? `<button class="btn btn-danger" onclick="updateTicketStatusTo('סגור', ${ticket.id})">✓ סגור</button>` : ''}
+        ${ticket.status === 'סגור' ? `<button class="btn btn-primary" onclick="updateTicketStatusTo('פתוח', ${ticket.id})">🔄 פתח מחדש</button>` : ''}
+        <button class="btn btn-danger" onclick="confirmDeleteTicket(${ticket.id})">🗑️ מחק</button>
+        <button class="btn btn-secondary" onclick="document.getElementById('ticket-modal-${ticket.id}').remove()">X סגור</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) modal.remove();
+  });
+}
+
+async function updateTicketStatusTo(newStatus, ticketId) {
+  try {
+    if (!db) {
+      showToast('❌ חיבור לשרת לא זמין', 'error');
+      return;
+    }
+
+    const updateData = {
+      status: newStatus
+    };
+
+    if (newStatus === 'סגור') {
+      updateData.resolved_at = new Date().toISOString();
+    } else if (newStatus === 'פתוח') {
+      // Clear resolved_at when reopening
+      updateData.resolved_at = null;
+    }
+
+    console.log('🔄 Updating ticket', ticketId, 'with data:', updateData);
+
+    const { error } = await db
+      .from('tickets')
+      .update(updateData)
+      .eq('id', ticketId);
+
+    if (error) {
+      console.error('🔴 Update error details:', {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+        fullError: JSON.stringify(error)
+      });
+      throw new Error(`Update failed: ${error.message || JSON.stringify(error)}`);
+    }
+
+    console.log(`✅ Successfully updated ticket ${ticketId} to ${newStatus}`);
+    showToast(`✅ הפנייה הועברה ל${newStatus}`, 'success');
+    const modal = document.getElementById(`ticket-modal-${ticketId}`);
+    if (modal) modal.remove();
+    setTimeout(() => loadTickets(), 500);
+
+  } catch (err) {
+    console.error('🔴 Update error:', err.message || err);
+    showToast('❌ שגיאה בעדכון: ' + (err.message || JSON.stringify(err)), 'error');
+  }
+}
+
+function confirmDeleteTicket(ticketId) {
+  const ticket = allTickets.find(t => t.id === ticketId);
+  if (!ticket) return;
+
+  // Create confirmation modal
+  const confirmModal = document.createElement('div');
+  confirmModal.className = 'modal-overlay active';
+  confirmModal.id = `confirm-delete-${ticketId}`;
+  confirmModal.innerHTML = `
+    <div class="modal" style="max-width: 500px; text-align: center;">
+      <h3 style="color: #e11d48; margin-bottom: 1rem;">⚠️ אישור מחיקה</h3>
+      <p style="font-size: 1.1rem; margin-bottom: 1.5rem;">
+        האם אתה בטוח שברצונך למחוק את הפנייה הזו?
+      </p>
+      <div style="background: var(--primary-light); padding: 1rem; border-radius: var(--radius-md); margin-bottom: 2rem;">
+        <strong>${sanitizeHTML(ticket.customer_name)}</strong><br>
+        ${sanitizeHTML(ticket.subject)}
+      </div>
+      <p style="color: var(--text-light); font-size: 0.9rem; margin-bottom: 1.5rem;">
+        פעולה זו לא ניתנת לשחזור. הנתונים יימחקו לצמיתות.
+      </p>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <button class="btn btn-secondary" onclick="document.getElementById('confirm-delete-${ticketId}').remove()">
+          ❌ בטל
+        </button>
+        <button class="btn btn-danger" onclick="deleteTicket(${ticketId})">
+          🗑️ אישור מחיקה
+        </button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(confirmModal);
+  confirmModal.addEventListener('click', (e) => {
+    if (e.target === confirmModal) confirmModal.remove();
+  });
+}
+
+async function deleteTicket(ticketId) {
+  try {
+    if (!db) {
+      showToast('❌ חיבור לשרת לא זמין', 'error');
+      return;
+    }
+
+    console.log('🗑️ Deleting ticket', ticketId);
+
+    const { error } = await db
+      .from('tickets')
+      .delete()
+      .eq('id', ticketId);
+
+    if (error) {
+      console.error('🔴 Delete error details:', {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+        fullError: JSON.stringify(error)
+      });
+      throw new Error(`Delete failed: ${error.message || JSON.stringify(error)}`);
+    }
+
+    console.log(`✅ Successfully deleted ticket ${ticketId}`);
+    showToast('✅ הפנייה נמחקה בהצלחה', 'success');
+
+    // Close all modals
+    document.querySelectorAll('.modal-overlay').forEach(m => m.remove());
+
+    // Reload tickets
+    setTimeout(() => loadTickets(), 500);
+
+  } catch (err) {
+    console.error('🔴 Delete error:', err.message || err);
+    showToast('❌ שגיאה במחיקה: ' + (err.message || JSON.stringify(err)), 'error');
+  }
+}
+
+// Bulk operations
+function toggleSelectAll(checked) {
+  document.querySelectorAll('.ticket-checkbox').forEach(checkbox => {
+    checkbox.checked = checked;
+  });
+  updateSelectedCount();
+}
+
+function updateSelectedCount() {
+  const selected = document.querySelectorAll('.ticket-checkbox:checked').length;
+  const total = document.querySelectorAll('.ticket-checkbox').length;
+  document.getElementById('selectedCount').textContent = `בחר ${selected}`;
+
+  // Uncheck "Select All" if not all are selected
+  if (selected < total) {
+    document.getElementById('selectAllTickets').checked = false;
+  } else if (selected === total && total > 0) {
+    document.getElementById('selectAllTickets').checked = true;
+  }
+}
+
+async function applyBulkStatusUpdate() {
+  const selectedCheckboxes = document.querySelectorAll('.ticket-checkbox:checked');
+  const newStatus = document.getElementById('bulkStatusSelect').value;
+
+  if (!newStatus) {
+    showToast('❌ בחר סטטוס', 'error');
+    return;
+  }
+
+  if (selectedCheckboxes.length === 0) {
+    showToast('❌ בחר פניות לעדכון', 'error');
+    return;
+  }
+
+  // Confirmation
+  const confirmModal = document.createElement('div');
+  confirmModal.className = 'modal-overlay active';
+  confirmModal.innerHTML = `
+    <div class="modal" style="max-width: 500px; text-align: center;">
+      <h3 style="margin-bottom: 1rem;">⚠️ אישור עדכון</h3>
+      <p style="font-size: 1.1rem; margin-bottom: 1.5rem;">
+        האם אתה בטוח שברצונך לעדכן ${selectedCheckboxes.length} פניות לסטטוס <strong>${newStatus}</strong>?
+      </p>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <button class="btn btn-secondary" onclick="this.closest('.modal-overlay').remove()">
+          ❌ בטל
+        </button>
+        <button class="btn btn-primary" onclick="confirmBulkUpdate('${newStatus}'); this.closest('.modal-overlay').remove();">
+          ✓ אישור עדכון
+        </button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(confirmModal);
+  confirmModal.addEventListener('click', (e) => {
+    if (e.target === confirmModal) confirmModal.remove();
+  });
+}
+
+async function confirmBulkUpdate(newStatus) {
+  try {
+    if (!db) {
+      showToast('❌ חיבור לשרת לא זמין', 'error');
+      return;
+    }
+
+    const selectedCheckboxes = document.querySelectorAll('.ticket-checkbox:checked');
+    const ticketIds = Array.from(selectedCheckboxes).map(cb => parseInt(cb.dataset.ticketId));
+
+    if (ticketIds.length === 0) return;
+
+    console.log('🔄 Updating', ticketIds.length, 'tickets to', newStatus);
+
+    const updateData = { status: newStatus };
+    if (newStatus === 'סגור') {
+      updateData.resolved_at = new Date().toISOString();
+    } else if (newStatus === 'פתוח') {
+      updateData.resolved_at = null;
+    }
+
+    // Update all selected tickets
+    const { error } = await db
+      .from('tickets')
+      .update(updateData)
+      .in('id', ticketIds);
+
+    if (error) throw new Error(error.message);
+
+    showToast(`✅ ${ticketIds.length} פניות עודכנו ל${newStatus}`, 'success');
+    clearBulkSelection();
+    setTimeout(() => loadTickets(), 500);
+
+  } catch (err) {
+    console.error('🔴 Bulk update error:', err.message);
+    showToast('❌ שגיאה בעדכון: ' + err.message, 'error');
+  }
+}
+
+async function applyBulkDelete() {
+  const selectedCheckboxes = document.querySelectorAll('.ticket-checkbox:checked');
+
+  if (selectedCheckboxes.length === 0) {
+    showToast('❌ בחר פניות למחיקה', 'error');
+    return;
+  }
+
+  // Confirmation
+  const confirmModal = document.createElement('div');
+  confirmModal.className = 'modal-overlay active';
+  confirmModal.innerHTML = `
+    <div class="modal" style="max-width: 500px; text-align: center;">
+      <h3 style="color: #e11d48; margin-bottom: 1rem;">⚠️ אישור מחיקה</h3>
+      <p style="font-size: 1.1rem; margin-bottom: 1.5rem;">
+        האם אתה בטוח שברצונך למחוק <strong>${selectedCheckboxes.length} פניות</strong>?
+      </p>
+      <p style="color: var(--text-light); font-size: 0.9rem; margin-bottom: 1.5rem;">
+        פעולה זו לא ניתנת לשחזור. הנתונים יימחקו לצמיתות.
+      </p>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <button class="btn btn-secondary" onclick="this.closest('.modal-overlay').remove()">
+          ❌ בטל
+        </button>
+        <button class="btn btn-danger" onclick="confirmBulkDelete(); this.closest('.modal-overlay').remove();">
+          🗑️ אישור מחיקה
+        </button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(confirmModal);
+  confirmModal.addEventListener('click', (e) => {
+    if (e.target === confirmModal) confirmModal.remove();
+  });
+}
+
+async function confirmBulkDelete() {
+  try {
+    if (!db) {
+      showToast('❌ חיבור לשרת לא זמין', 'error');
+      return;
+    }
+
+    const selectedCheckboxes = document.querySelectorAll('.ticket-checkbox:checked');
+    const ticketIds = Array.from(selectedCheckboxes).map(cb => parseInt(cb.dataset.ticketId));
+
+    if (ticketIds.length === 0) return;
+
+    console.log('🗑️ Deleting', ticketIds.length, 'tickets');
+
+    // Delete all selected tickets
+    const { error } = await db
+      .from('tickets')
+      .delete()
+      .in('id', ticketIds);
+
+    if (error) throw new Error(error.message);
+
+    showToast(`✅ ${ticketIds.length} פניות נמחקו בהצלחה`, 'success');
+    clearBulkSelection();
+    setTimeout(() => loadTickets(), 500);
+
+  } catch (err) {
+    console.error('🔴 Bulk delete error:', err.message);
+    showToast('❌ שגיאה במחיקה: ' + err.message, 'error');
+  }
+}
+
+function clearBulkSelection() {
+  document.querySelectorAll('.ticket-checkbox').forEach(cb => cb.checked = false);
+  document.getElementById('selectAllTickets').checked = false;
+  document.getElementById('bulkStatusSelect').value = '';
+  updateSelectedCount();
+}
+
+async function updateStatus(event) {
+  try {
+    if (!db) {
+      showToast('❌ חיבור לשרת לא זמין', 'error');
+      return;
+    }
+
+    // Extract ID safely from data attribute
+    const button = event.currentTarget || event.target.closest('[data-ticket-id]');
+    const id = parseInt(button?.dataset?.ticketId, 10);
+
+    if (!id || isNaN(id)) {
+      showToast('❌ שגיאה בזיהוי הפנייה', 'error');
+      return;
+    }
+
+    const user = await checkAuth();
+
+    // Show loading state
+    const originalText = button.textContent;
+    button.disabled = true;
+    button.textContent = '⏳ עדכון...';
+
+    const { error } = await db
+      .from('tickets')
+      .update({
+        status: 'סגור', // Use Hebrew status
+        resolved_at: new Date().toISOString()
+        // Note: updated_by NOT included - anonymous users don't have team_members entry
+      })
+      .eq('id', id);
+
+    if (error) {
+      console.error('🔴 Update error:', error);
+      throw error;
+    }
+
+    showToast('✅ הפנייה סגורה #' + id, 'success');
+    setTimeout(() => loadTickets(), 500);
+
+  } catch (err) {
+    console.error('🔴 Update error:', err);
+    showToast('❌ שגיאה בעדכון: ' + err.message, 'error');
+  } finally {
+    const button = event.currentTarget || event.target.closest('[data-ticket-id]');
+    if (button) {
+      button.disabled = false;
+      button.textContent = '✓ סגור';
+    }
+  }
+}
+
+function showToast(msg, type = 'info') {
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  toast.textContent = msg;
+  toast.setAttribute('role', 'alert');
+  toast.setAttribute('aria-live', 'polite');
+  document.body.appendChild(toast);
+
+  // Announce to screen readers
+  if (window.TicketIQAccessibility?.announceToScreenReader) {
+    window.TicketIQAccessibility.announceToScreenReader(msg);
+  }
+
+  setTimeout(() => toast.remove(), 3000);
 }
 
 function toggleTheme() {
@@ -494,160 +1757,50 @@ function toggleTheme() {
   localStorage.setItem('theme', isDark ? 'light' : 'dark');
 }
 
-function initTheme() {
-  const saved = localStorage.getItem('theme') || 'light';
-  document.documentElement.setAttribute('data-theme', saved);
+// === INITIALIZATION ===
+function initApp() {
+  console.log('🚀 Initializing TicketIQ...');
+
+  // Set theme
+  const savedTheme = localStorage.getItem('theme') || 'light';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+
+  // Wait for Supabase to load
+  if (typeof supabase === 'undefined') {
+    console.warn('⏳ Supabase script not loaded yet, retrying...');
+    setTimeout(initApp, 500);
+    return;
+  }
+
+  // Verify DB connection
+  if (!db) {
+    console.error('❌ Database not initialized');
+    showToast('❌ חיבור לשרת נכשל - בדוק את ה-credentials', 'error');
+    return;
+  }
+
+  console.log('✅ Supabase connected');
+
+  // Load tickets
+  loadTickets();
 }
 
-function getTimeElapsed(date) {
-  const now = new Date();
-  const then = new Date(date);
-  const diff = now - then;
-  const hours = Math.floor(diff / (1000 * 60 * 60));
-  const days = Math.floor(hours / 24);
-
-  if (days > 0) return `${days} יום`;
-  if (hours > 0) return `${hours} שעות`;
-  return 'כעת';
-}
-
-function updateStats() {
-  const open = allTickets.filter(t => t.status !== 'סגור').length;
-  const closed = allTickets.filter(t => t.status === 'סגור').length;
-  const high = allTickets.filter(t => t.priority === 'גבוהה' && t.status !== 'סגור').length;
-
-  statsDiv.innerHTML = `
-    <div class="stat-card">
-      <div class="stat-value">${allTickets.length}</div>
-      <div class="stat-label">סה"כ פניות</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-value">${open}</div>
-      <div class="stat-label">פתוחות</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-value">${closed}</div>
-      <div class="stat-label">סגורות</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-value">${high}</div>
-      <div class="stat-label">עדיפות גבוהה</div>
-    </div>
-  `;
-}
-
-function filterAndDisplayTickets() {
-  const query = searchBox.value.toLowerCase();
-  let filtered = allTickets.filter(t => {
-    const matchesSearch =
-      t.customer_name.toLowerCase().includes(query) ||
-      (t.phone || '').toLowerCase().includes(query) ||
-      t.subject.toLowerCase().includes(query) ||
-      (t.category || '').toLowerCase().includes(query);
-
-    const matchesStatus = currentStatusFilter === 'all' || t.status === currentStatusFilter;
-
-    return matchesSearch && matchesStatus;
+// Wait for DOM and Supabase script to load
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(initApp, 1000); // Wait for scripts to fully load
   });
-
-  rows.innerHTML = filtered.length ? filtered.map(t => `
-    <tr class="${esc(t.priority)}">
-      <td>${esc(t.customer_name)}</td>
-      <td>${esc(t.phone || '-')}</td>
-      <td>${esc(t.subject)}</td>
-      <td><span class="category-tag">${esc(t.category || 'ללא')}</span></td>
-      <td>${esc(t.priority)}</td>
-      <td><span class="status-badge status-${t.status}">${esc(t.status)}</span></td>
-      <td><span class="time-metric">${getTimeElapsed(t.created_at)}</span></td>
-      <td>
-        <select onchange="changeStatus(${t.id}, this.value)" style="padding:6px;font-size:12px;">
-          <option value="">בחר</option>
-          <option ${t.status === 'בטיפול' ? 'selected' : ''}>בטיפול</option>
-          <option ${t.status === 'ממתין' ? 'selected' : ''}>ממתין</option>
-          <option ${t.status === 'סגור' ? 'selected' : ''}>סגור</option>
-        </select>
-      </td>
-    </tr>`).join('') : '<tr><td colspan="8" class="empty-state">אין פניות להצגה</td></tr>';
+} else {
+  setTimeout(initApp, 1000);
 }
-
-async function load() {
-  const { data, error } = await db.from('tickets').select('*').order(currentSort, { ascending: currentSort === 'created_at' ? false : true });
-  if (error) {
-    showMessage('שגיאה בטעינה: ' + error.message, 'error');
-    return;
-  }
-  allTickets = data || [];
-  updateStats();
-  filterAndDisplayTickets();
-}
-
-async function changeStatus(id, newStatus) {
-  if (!newStatus) return;
-  const { error } = await db.from('tickets').update({ status: newStatus }).eq('id', id);
-  if (error) {
-    showMessage('שגיאה בעדכון: ' + error.message, 'error');
-    return;
-  }
-  showMessage('הסטטוס עודכן בהצלחה', 'success');
-  load();
-}
-
-function filterStatus(status) {
-  currentStatusFilter = status;
-  document.querySelectorAll('.filter-controls button').forEach(btn => btn.classList.remove('active'));
-  event.target.classList.add('active');
-  filterAndDisplayTickets();
-}
-
-function sortTable(field) {
-  currentSort = field;
-  document.querySelectorAll('.action-controls button').forEach(btn => btn.classList.remove('active'));
-  event.target.classList.add('active');
-  load();
-}
-
-function exportCSV() {
-  const headers = ['שם לקוח', 'טלפון', 'נושא', 'קטגוריה', 'עדיפות', 'סטטוס', 'תאריך'];
-  const rows = allTickets.map(t => [
-    t.customer_name,
-    t.phone || '',
-    t.subject,
-    t.category || '',
-    t.priority,
-    t.status,
-    new Date(t.created_at).toLocaleDateString('he-IL')
-  ]);
-
-  let csv = headers.join(',') + '\n';
-  rows.forEach(row => {
-    csv += row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',') + '\n';
-  });
-
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = `tickets-${new Date().toLocaleDateString('he-IL')}.csv`;
-  link.click();
-  showMessage('הקובץ הורד בהצלחה', 'success');
-}
-
-document.getElementById('add').onsubmit = async e => {
-  e.preventDefault();
-  const t = Object.fromEntries(new FormData(e.target));
-  const { error } = await db.from('tickets').insert({ ...t, status: 'פתוח' });
-  if (error) {
-    showMessage('שגיאה בהוספה: ' + error.message, 'error');
-    return;
-  }
-  showMessage('הפנייה נוספה בהצלחה', 'success');
-  e.target.reset();
-  load();
-};
-
-searchBox.addEventListener('input', filterAndDisplayTickets);
-
-initTheme();
-load();
 </script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+
+<!-- Accessibility Features -->
+<script src="accessibility.js" defer></script>
+
+</main>
+
 </body>
 </html>
