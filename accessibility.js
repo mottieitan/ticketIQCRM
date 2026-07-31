@@ -20,6 +20,11 @@
     setupAriaAttributes();
     setupSkipLink();
     enableAnnouncements();
+    setupAccessibilityButton();
+    setupFormValidation();
+    setupTextSizePreferences();
+    validateColorContrast();
+    setupLanguageSupport();
   }
 
   // Keyboard Navigation Support
@@ -137,6 +142,115 @@
       toast.setAttribute('aria-atomic', 'true');
     });
   }
+
+  // Accessibility Control Button
+  function setupAccessibilityButton() {
+    const button = document.getElementById('accessibility-btn');
+    const menu = document.getElementById('accessibility-menu');
+
+    if (!button) {
+      // Create button if it doesn't exist
+      const newButton = document.createElement('button');
+      newButton.id = 'accessibility-btn';
+      newButton.className = 'accessibility-button';
+      newButton.setAttribute('aria-label', 'פתח תפריט נגישות');
+      newButton.setAttribute('aria-expanded', 'false');
+      newButton.setAttribute('aria-controls', 'accessibility-menu');
+      newButton.innerHTML = '♿';
+      newButton.title = 'תפריט נגישות';
+      document.body.appendChild(newButton);
+
+      // Create menu
+      const newMenu = document.createElement('div');
+      newMenu.id = 'accessibility-menu';
+      newMenu.className = 'accessibility-menu hidden';
+      newMenu.setAttribute('role', 'menu');
+      newMenu.innerHTML = `
+        <button type="button" role="menuitem" onclick="toggleTextSize()" aria-label="הגדל גודל טקסט">
+          🔤 הגדל טקסט
+        </button>
+        <button type="button" role="menuitem" onclick="toggleHighContrast()" aria-label="הפעל קונטרסט גבוה">
+          🎨 קונטרסט גבוה
+        </button>
+        <button type="button" role="menuitem" onclick="toggleDarkMode()" aria-label="החלף מצב כהה">
+          🌙 מצב כהה
+        </button>
+        <button type="button" role="menuitem" onclick="focusMainContent()" aria-label="דלג לתוכן ראשי">
+          ⚡ לתוכן ראשי
+        </button>
+      `;
+      document.body.appendChild(newMenu);
+    }
+
+    // Toggle menu
+    const btn = document.getElementById('accessibility-btn');
+    const men = document.getElementById('accessibility-menu');
+
+    if (btn && men) {
+      btn.addEventListener('click', () => {
+        men.classList.toggle('hidden');
+        btn.setAttribute('aria-expanded', !men.classList.contains('hidden'));
+      });
+
+      // Close menu on escape
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !men.classList.contains('hidden')) {
+          men.classList.add('hidden');
+          btn.setAttribute('aria-expanded', 'false');
+          btn.focus();
+        }
+      });
+
+      // Close menu when clicking outside
+      document.addEventListener('click', (e) => {
+        if (!btn.contains(e.target) && !men.contains(e.target)) {
+          men.classList.add('hidden');
+          btn.setAttribute('aria-expanded', 'false');
+        }
+      });
+    }
+  }
+
+  // Utility functions for accessibility menu
+  window.toggleTextSize = function() {
+    const html = document.documentElement;
+    const current = html.getAttribute('data-text-size') || 'normal';
+    const next = current === 'normal' ? 'large' : 'normal';
+    html.setAttribute('data-text-size', next);
+    localStorage.setItem('textSize', next);
+    window.TicketIQAccessibility?.announceToScreenReader(
+      next === 'large' ? 'גודל טקסט הוגדל' : 'גודל טקסט חזר לנורמלי'
+    );
+  };
+
+  window.toggleHighContrast = function() {
+    const html = document.documentElement;
+    const current = html.getAttribute('data-high-contrast') === 'true';
+    html.setAttribute('data-high-contrast', !current);
+    localStorage.setItem('highContrast', !current);
+    window.TicketIQAccessibility?.announceToScreenReader(
+      !current ? 'קונטרסט גבוה הופעל' : 'קונטרסט גבוה הושבת'
+    );
+  };
+
+  window.toggleDarkMode = function() {
+    const html = document.documentElement;
+    const current = html.getAttribute('data-theme') === 'dark';
+    html.setAttribute('data-theme', current ? 'light' : 'dark');
+    localStorage.setItem('theme', current ? 'light' : 'dark');
+    window.TicketIQAccessibility?.announceToScreenReader(
+      !current ? 'מצב כהה הופעל' : 'מצב בהיר הופעל'
+    );
+  };
+
+  window.focusMainContent = function() {
+    const main = document.getElementById('main-content');
+    if (main) {
+      main.focus();
+      main.scrollIntoView({ behavior: 'smooth' });
+      window.TicketIQAccessibility?.announceToScreenReader('העברה לתוכן ראשי');
+    }
+  };
 
   // Skip to Main Content Link
   function setupSkipLink() {

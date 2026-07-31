@@ -1,0 +1,431 @@
+/**
+ * 3D Effects and Modern Design
+ * Creates depth and dimensional feel
+ */
+
+:root {
+  --perspective: 1000px;
+  --transform-speed: 0.3s;
+  --elevation-1: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --elevation-2: 0 4px 8px rgba(0, 0, 0, 0.15);
+  --elevation-3: 0 8px 16px rgba(0, 0, 0, 0.2);
+  --elevation-4: 0 12px 24px rgba(0, 0, 0, 0.25);
+  --elevation-5: 0 16px 32px rgba(0, 0, 0, 0.3);
+}
+
+/* 3D Perspective for main container */
+body {
+  perspective: var(--perspective);
+}
+
+/* Card 3D hover effect */
+.card {
+  transition: all var(--transform-speed) cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform: translateZ(0) rotateX(0deg) rotateY(0deg);
+  box-shadow: var(--elevation-2);
+  position: relative;
+}
+
+.card:hover {
+  transform: translateZ(20px) rotateX(2deg) rotateY(-2deg);
+  box-shadow: var(--elevation-5);
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(255, 255, 255, 0) 100%);
+  border-radius: var(--radius-lg);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--transform-speed);
+}
+
+.card:hover::before {
+  opacity: 1;
+}
+
+/* Button 3D effects */
+button, .btn {
+  position: relative;
+  overflow: hidden;
+  transition: all var(--transform-speed) cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform: translateZ(0);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1),
+              inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+button:hover, .btn:hover {
+  transform: translateY(-2px) translateZ(0);
+  box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2),
+              inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+button:active, .btn:active {
+  transform: translateY(0px) translateZ(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1),
+              inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Button ripple effect */
+button::after, .btn::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+  pointer-events: none;
+}
+
+button:active::after, .btn:active::after {
+  width: 300px;
+  height: 300px;
+  transition: width 0s, height 0s;
+}
+
+/* Input fields 3D effect */
+input, select, textarea {
+  transition: all var(--transform-speed);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+input:focus, select:focus, textarea:focus {
+  transform: translateZ(4px);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05),
+              0 0 0 3px rgba(124, 58, 237, 0.1),
+              0 4px 12px rgba(124, 58, 237, 0.2);
+}
+
+/* Modal 3D entrance */
+.modal-overlay {
+  animation: fadeInBackdrop 0.3s ease-out;
+}
+
+.modal-overlay.active .modal {
+  animation: slideUpIn3D 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes fadeInBackdrop {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(4px);
+  }
+}
+
+@keyframes slideUpIn3D {
+  from {
+    opacity: 0;
+    transform: translateY(30px) rotateX(10deg) scaleY(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) rotateX(0deg) scaleY(1);
+  }
+}
+
+/* Stats cards 3D */
+.stats-grid {
+  perspective: var(--perspective);
+}
+
+.stat-card {
+  transition: all var(--transform-speed) cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform-style: preserve-3d;
+  box-shadow: var(--elevation-3);
+}
+
+.stat-card:hover {
+  transform: translateZ(16px) rotateX(2deg) rotateY(2deg);
+  box-shadow: var(--elevation-5);
+}
+
+/* Table row hover 3D */
+tbody tr {
+  transition: all var(--transform-speed);
+  transform: translateZ(0);
+}
+
+tbody tr:hover {
+  background: rgba(124, 58, 237, 0.05);
+  transform: translateZ(2px) scaleY(1.02);
+  box-shadow: inset 0 0 0 1px rgba(124, 58, 237, 0.1);
+}
+
+/* Form elevation */
+form {
+  box-shadow: var(--elevation-2);
+  transition: all var(--transform-speed);
+}
+
+form:focus-within {
+  box-shadow: var(--elevation-4);
+}
+
+/* Toast notification 3D */
+.toast {
+  animation: slideInRight3D 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: var(--elevation-4);
+}
+
+@keyframes slideInRight3D {
+  from {
+    opacity: 0;
+    transform: translateX(100px) rotateY(-20deg) scaleX(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) rotateY(0deg) scaleX(1);
+  }
+}
+
+/* Accessibility button - floating action button */
+.accessibility-button {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #7c3aed 0%, #ec4899 100%);
+  color: white;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  box-shadow: var(--elevation-4);
+  transition: all var(--transform-speed) cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  animation: floatIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.accessibility-button:hover {
+  transform: translateY(-4px) translateZ(12px) scale(1.1);
+  box-shadow: var(--elevation-5);
+}
+
+.accessibility-button:active {
+  transform: translateY(-2px) translateZ(8px) scale(1.05);
+  box-shadow: var(--elevation-3);
+}
+
+.accessibility-button::before {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  transform: scale(1);
+  animation: pulse-ring 2s infinite;
+}
+
+@keyframes floatIn {
+  from {
+    opacity: 0;
+    transform: translateY(50px) rotateZ(-45deg) scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) rotateZ(0deg) scale(1);
+  }
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.3);
+    opacity: 0;
+  }
+}
+
+/* Accessibility menu */
+.accessibility-menu {
+  position: fixed;
+  bottom: 80px;
+  right: 20px;
+  background: white;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--elevation-5);
+  padding: 0;
+  min-width: 200px;
+  max-width: 300px;
+  transform-origin: bottom right;
+  animation: slideUpMenu 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 998;
+}
+
+.accessibility-menu.hidden {
+  display: none;
+}
+
+@keyframes slideUpMenu {
+  from {
+    opacity: 0;
+    transform: scale(0.8) translateY(20px) rotateX(-10deg);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0) rotateX(0deg);
+  }
+}
+
+.accessibility-menu button {
+  width: 100%;
+  border: none;
+  padding: 12px 16px;
+  text-align: right;
+  background: transparent;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  transition: all var(--transform-speed);
+  font-size: 14px;
+  box-shadow: none;
+}
+
+.accessibility-menu button:last-child {
+  border-bottom: none;
+}
+
+.accessibility-menu button:hover {
+  background: rgba(124, 58, 237, 0.1);
+  transform: translateX(-4px);
+  box-shadow: inset 2px 0 0 #7c3aed;
+}
+
+/* Dark mode 3D adjustments */
+@media (prefers-color-scheme: dark) {
+  .card {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  }
+
+  .card:hover {
+    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.5);
+  }
+
+  .accessibility-button {
+    background: linear-gradient(135deg, #a78bfa 0%, #f472b6 100%);
+  }
+
+  .accessibility-menu {
+    background: #221b40;
+    color: #f3eeff;
+  }
+
+  .accessibility-menu button {
+    border-bottom-color: var(--border);
+  }
+
+  .accessibility-menu button:hover {
+    background: rgba(167, 139, 250, 0.2);
+  }
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .card,
+  button,
+  input,
+  .accessibility-button {
+    transform: none !important;
+  }
+}
+
+/* Large text size */
+html[data-text-size="large"] {
+  font-size: 18px;
+  line-height: 1.8;
+}
+
+html[data-text-size="large"] h1 {
+  font-size: 2.5rem;
+}
+
+html[data-text-size="large"] h2 {
+  font-size: 2rem;
+}
+
+html[data-text-size="large"] button,
+html[data-text-size="large"] .btn {
+  padding: 14px 20px;
+  font-size: 16px;
+}
+
+/* High contrast mode */
+html[data-high-contrast="true"] {
+  --primary: #0000cc;
+  --accent: #ff0000;
+  --success: #008000;
+  --danger: #cc0000;
+  --warning: #ff6600;
+  --text: #000000;
+  --bg: #ffffff;
+}
+
+html[data-high-contrast="true"] .card {
+  border: 3px solid #000000;
+}
+
+html[data-high-contrast="true"] button,
+html[data-high-contrast="true"] .btn {
+  border: 2px solid #000000;
+  font-weight: bold;
+}
+
+html[data-high-contrast="true"] input,
+html[data-high-contrast="true"] select,
+html[data-high-contrast="true"] textarea {
+  border: 2px solid #000000;
+  background: #ffffff;
+  color: #000000;
+}
+
+/* Mobile adjustments */
+@media (max-width: 640px) {
+  .accessibility-button {
+    width: 48px;
+    height: 48px;
+    bottom: 16px;
+    right: 16px;
+    font-size: 20px;
+  }
+
+  .accessibility-menu {
+    bottom: 64px;
+    right: 16px;
+    left: 16px;
+    right: auto;
+    transform-origin: bottom left;
+  }
+
+  .card:hover {
+    transform: translateZ(10px);
+  }
+}
