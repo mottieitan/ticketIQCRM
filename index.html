@@ -879,10 +879,15 @@ async function checkAuth() {
     if (!currentUser) {
       let userId = localStorage.getItem('anon-user-id');
 
-      // Clean up old format if it starts with 'anon-'
-      if (userId && userId.startsWith('anon-')) {
-        userId = userId.replace(/^anon-/, '');
-        localStorage.setItem('anon-user-id', userId);
+      // Clean up old format - remove ALL 'anon-' prefixes
+      if (userId) {
+        userId = userId.replace(/^anon-+/, ''); // Remove one or more 'anon-' prefixes
+        if (!userId) {
+          localStorage.removeItem('anon-user-id');
+          userId = null;
+        } else {
+          localStorage.setItem('anon-user-id', userId);
+        }
       }
 
       // If no stored ID, generate new one
@@ -896,7 +901,7 @@ async function checkAuth() {
         email: 'anonymous@ticketiq.local'
       };
 
-      console.log('👤 Anonymous user:', currentUser.id);
+      console.log('👤 Anonymous user ID:', currentUser.id, '(length:', currentUser.id.length, ')');
     }
 
     return currentUser;
@@ -906,10 +911,15 @@ async function checkAuth() {
     if (!currentUser) {
       let userId = localStorage.getItem('anon-user-id');
 
-      // Clean up old format
-      if (userId && userId.startsWith('anon-')) {
-        userId = userId.replace(/^anon-/, '');
-        localStorage.setItem('anon-user-id', userId);
+      // Clean up old format - remove ALL 'anon-' prefixes
+      if (userId) {
+        userId = userId.replace(/^anon-+/, ''); // Remove one or more 'anon-' prefixes
+        if (!userId) {
+          localStorage.removeItem('anon-user-id');
+          userId = null;
+        } else {
+          localStorage.setItem('anon-user-id', userId);
+        }
       }
 
       if (!userId) {
