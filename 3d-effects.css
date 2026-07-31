@@ -837,22 +837,49 @@ html[data-high-contrast="true"] .accessibility-menu {
   color: var(--text);
 }
 
+select {
+  color: #1e1b3a !important;
+  background-color: white !important;
+}
+
+select option {
+  background-color: white !important;
+  color: #1e1b3a !important;
+  padding: 0.75rem 1rem !important;
+  line-height: 1.6 !important;
+}
+
+select option:hover {
+  background-color: #7c3aed !important;
+  color: white !important;
+}
+
+select option:checked {
+  background: linear-gradient(#7c3aed, #7c3aed) !important;
+  background-color: #7c3aed !important;
+  color: white !important;
+}
+
+.form-group select {
+  color: #1e1b3a !important;
+  background-color: white !important;
+}
+
 .form-group select option {
-  background-color: white;
-  color: var(--text);
-  padding: 0.5rem;
-  line-height: 1.5;
+  background-color: white !important;
+  color: #1e1b3a !important;
+  padding: 0.75rem 1rem !important;
+  line-height: 1.6 !important;
 }
 
 .form-group select option:hover {
-  background: linear-gradient(var(--primary), var(--primary));
-  background-color: var(--primary) !important;
+  background-color: #7c3aed !important;
   color: white !important;
 }
 
 .form-group select option:checked {
-  background: linear-gradient(var(--primary), var(--primary));
-  background-color: var(--primary) !important;
+  background: linear-gradient(#7c3aed, #7c3aed) !important;
+  background-color: #7c3aed !important;
   color: white !important;
 }
 
@@ -909,6 +936,12 @@ html[data-high-contrast="true"] .accessibility-menu {
   .form-group textarea:focus {
     background: rgba(255, 255, 255, 0.1);
   }
+}
+
+/* Sort dropdown styling */
+#sortDropdown {
+  color: #1e1b3a !important;
+  background-color: white !important;
 }
 
 /* Mobile adjustments */
