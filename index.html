@@ -799,15 +799,17 @@ html[data-theme="dark"] {
 </main>
 
 <script>
-// ⚠️ SECURITY: Load from environment variables or window.env
-// If using Vite/build process: import.meta.env.VITE_SUPABASE_URL
-// If using plain HTML: set these via .env file or window object
-const SUPABASE_URL = window.__SUPABASE_URL__ || import.meta?.env?.VITE_SUPABASE_URL || 'https://skhuhvxqmawbjvifvxnz.supabase.co';
-const SUPABASE_KEY = window.__SUPABASE_KEY__ || import.meta?.env?.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNraHVodnhxbWF3Ymp2aWZ2eG56Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0Nzc5OTAsImV4cCI6MjEwMTA1Mzk5MH0.Yq4uUfx6AmpkLhu7trFUVnhYYdANBLL-kyx85CST1AM';
+// ⚠️ SECURITY: Load Supabase credentials
+// For Vite: use import.meta.env (requires module script)
+// For plain HTML: use window object or hardcoded values (for development only)
 
-// TODO: Remove hardcoded key above and use backend proxy instead
+const SUPABASE_URL = window.__SUPABASE_URL__ || 'https://skhuhvxqmawbjvifvxnz.supabase.co';
+const SUPABASE_KEY = window.__SUPABASE_KEY__ || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNraHVodnhxbWF3Ymp2aWZ2eG56Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0Nzc5OTAsImV4cCI6MjEwMTA1Mzk5MH0.Yq4uUfx6AmpkLhu7trFUVnhYYdANBLL-kyx85CST1AM';
+
+// TODO: Remove hardcoded key and use environment variables in production
 if (!SUPABASE_URL || !SUPABASE_KEY) {
-  console.error('❌ Missing Supabase credentials. Check environment variables or window.__SUPABASE_URL__');
+  console.error('❌ Missing Supabase credentials');
+  alert('❌ Error: Supabase credentials not configured');
 }
 
 const db = SUPABASE_URL && SUPABASE_KEY ? supabase?.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
