@@ -769,9 +769,9 @@ html[data-theme="dark"] {
     <h2>📋 פניות בעיבוד</h2>
     <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
       <button class="btn btn-sm btn-primary filter-btn" onclick="filterTickets('all')">📊 הכל</button>
-      <button class="btn btn-sm btn-secondary filter-btn" onclick="filterTickets('open')">🔴 פתוחות</button>
-      <button class="btn btn-sm btn-secondary filter-btn" onclick="filterTickets('pending')">⚠️ בטיפול</button>
-      <button class="btn btn-sm btn-secondary filter-btn" onclick="filterTickets('resolved')">✅ פתורות</button>
+      <button class="btn btn-sm btn-secondary filter-btn" onclick="filterTickets('פתוח')">🔴 פתוחות</button>
+      <button class="btn btn-sm btn-secondary filter-btn" onclick="filterTickets('בטיפול')">⚠️ בטיפול</button>
+      <button class="btn btn-sm btn-secondary filter-btn" onclick="filterTickets('סגור')">✅ סגורות</button>
     </div>
   </div>
 
@@ -1207,6 +1207,9 @@ function viewTicketDetails(ticketId) {
   }[ticket.priority] || '📍';
 
   const statusEmoji = {
+    'פתוח': '🔴',
+    'בטיפול': '⚠️',
+    'סגור': '✅',
     'open': '🔴',
     'pending': '⚠️',
     'resolved': '✅',
@@ -1240,10 +1243,11 @@ function viewTicketDetails(ticketId) {
   modal.innerHTML = `
     <div class="modal" style="max-width: 600px; max-height: 80vh; overflow-y: auto;">
       ${details}
-      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-top: 2rem;">
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 1rem; margin-top: 2rem;">
         ${ticket.status !== 'בטיפול' && ticket.status !== 'סגור' ? `<button class="btn btn-secondary" onclick="updateTicketStatusTo('בטיפול', ${ticket.id})">⚠️ בטיפול</button>` : ''}
         ${ticket.status !== 'סגור' ? `<button class="btn btn-danger" onclick="updateTicketStatusTo('סגור', ${ticket.id})">✓ סגור</button>` : ''}
         ${ticket.status === 'סגור' ? `<button class="btn btn-primary" onclick="updateTicketStatusTo('פתוח', ${ticket.id})">🔄 פתח מחדש</button>` : ''}
+        <button class="btn btn-danger" onclick="confirmDeleteTicket(${ticket.id})">🗑️ מחק</button>
         <button class="btn btn-secondary" onclick="document.getElementById('ticket-modal-${ticket.id}').remove()">X סגור</button>
       </div>
     </div>
@@ -1300,6 +1304,84 @@ async function updateTicketStatusTo(newStatus, ticketId) {
   } catch (err) {
     console.error('🔴 Update error:', err.message || err);
     showToast('❌ שגיאה בעדכון: ' + (err.message || JSON.stringify(err)), 'error');
+  }
+}
+
+function confirmDeleteTicket(ticketId) {
+  const ticket = allTickets.find(t => t.id === ticketId);
+  if (!ticket) return;
+
+  // Create confirmation modal
+  const confirmModal = document.createElement('div');
+  confirmModal.className = 'modal-overlay active';
+  confirmModal.id = `confirm-delete-${ticketId}`;
+  confirmModal.innerHTML = `
+    <div class="modal" style="max-width: 500px; text-align: center;">
+      <h3 style="color: #e11d48; margin-bottom: 1rem;">⚠️ אישור מחיקה</h3>
+      <p style="font-size: 1.1rem; margin-bottom: 1.5rem;">
+        האם אתה בטוח שברצונך למחוק את הפנייה הזו?
+      </p>
+      <div style="background: var(--primary-light); padding: 1rem; border-radius: var(--radius-md); margin-bottom: 2rem;">
+        <strong>${sanitizeHTML(ticket.customer_name)}</strong><br>
+        ${sanitizeHTML(ticket.subject)}
+      </div>
+      <p style="color: var(--text-light); font-size: 0.9rem; margin-bottom: 1.5rem;">
+        פעולה זו לא ניתנת לשחזור. הנתונים יימחקו לצמיתות.
+      </p>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <button class="btn btn-secondary" onclick="document.getElementById('confirm-delete-${ticketId}').remove()">
+          ❌ בטל
+        </button>
+        <button class="btn btn-danger" onclick="deleteTicket(${ticketId})">
+          🗑️ אישור מחיקה
+        </button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(confirmModal);
+  confirmModal.addEventListener('click', (e) => {
+    if (e.target === confirmModal) confirmModal.remove();
+  });
+}
+
+async function deleteTicket(ticketId) {
+  try {
+    if (!db) {
+      showToast('❌ חיבור לשרת לא זמין', 'error');
+      return;
+    }
+
+    console.log('🗑️ Deleting ticket', ticketId);
+
+    const { error } = await db
+      .from('tickets')
+      .delete()
+      .eq('id', ticketId);
+
+    if (error) {
+      console.error('🔴 Delete error details:', {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+        fullError: JSON.stringify(error)
+      });
+      throw new Error(`Delete failed: ${error.message || JSON.stringify(error)}`);
+    }
+
+    console.log(`✅ Successfully deleted ticket ${ticketId}`);
+    showToast('✅ הפנייה נמחקה בהצלחה', 'success');
+
+    // Close all modals
+    document.querySelectorAll('.modal-overlay').forEach(m => m.remove());
+
+    // Reload tickets
+    setTimeout(() => loadTickets(), 500);
+
+  } catch (err) {
+    console.error('🔴 Delete error:', err.message || err);
+    showToast('❌ שגיאה במחיקה: ' + (err.message || JSON.stringify(err)), 'error');
   }
 }
 
