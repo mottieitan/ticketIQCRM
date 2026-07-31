@@ -1038,7 +1038,7 @@ function updateStats() {
 
   // Debug: Show all unique statuses
   const uniqueStatuses = [...new Set(allTickets.map(t => t.status))];
-  console.log('📋 Unique statuses in DB:', uniqueStatuses);
+  console.log('📋 Unique statuses in DB:', uniqueStatuses.join(', '));
 
   // Calculate stats - count tickets by status
   const stats = {
