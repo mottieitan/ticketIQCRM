@@ -856,6 +856,7 @@ function validateTicketData(data) {
 }
 
 // === AUTHENTICATION CHECK ===
+// For Anon key without auth, generate a temporary user ID or use browser ID
 async function checkAuth() {
   if (!db) {
     showToast('❌ שגיאה בחיבור לשרת', 'error');
@@ -863,83 +864,137 @@ async function checkAuth() {
   }
 
   try {
+    // Try to get session if auth is enabled
     const { data: { session }, error } = await db.auth.getSession();
-    if (error) throw error;
 
-    if (!session) {
-      showToast('⚠️ יש להתחבר לביצוע פעולה זו', 'error');
-      return null;
+    if (session?.user) {
+      currentUser = session.user;
+      return session.user;
     }
 
-    currentUser = session.user;
-    return session.user;
+    // If no session (using Anon key), create a temporary user object
+    // In production, implement proper auth or use device ID
+    if (!currentUser) {
+      currentUser = {
+        id: 'anon-' + (localStorage.getItem('anon-user-id') || generateUUID()),
+        email: 'anonymous@ticketiq.local'
+      };
+      // Store the ID for consistency
+      localStorage.setItem('anon-user-id', currentUser.id);
+    }
+
+    return currentUser;
   } catch (err) {
-    showToast('❌ בעיה בזיהוי המשתמש: ' + err.message, 'error');
-    return null;
+    // If auth fails, use anonymous mode
+    if (!currentUser) {
+      currentUser = {
+        id: 'anon-' + (localStorage.getItem('anon-user-id') || generateUUID()),
+        email: 'anonymous@ticketiq.local'
+      };
+      localStorage.setItem('anon-user-id', currentUser.id);
+    }
+    return currentUser;
   }
+}
+
+// Generate UUID for anonymous users
+function generateUUID() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0,
+          v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
 }
 
 async function handleSubmit(e) {
   e.preventDefault();
 
   try {
-    const user = await checkAuth();
-    if (!user) return;
+    if (!db) {
+      showToast('❌ חיבור לשרת לא זמין', 'error');
+      return;
+    }
 
     const formData = new FormData(e.target);
     const data = Object.fromEntries(formData);
 
     const validatedData = validateTicketData(data);
+    const user = await checkAuth();
 
-    const { error } = await db.from('tickets').insert([{
+    // Show loading state
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    submitBtn.disabled = true;
+    submitBtn.textContent = '⏳ שליחה...';
+
+    const { data: insertedData, error } = await db.from('tickets').insert([{
       customer_name: validatedData.customer,
       customer_phone: validatedData.phone,
-      customer_email: user.email,
+      customer_email: user?.email || 'anonymous@ticketiq.local',
       subject: validatedData.subject,
       category: validatedData.category,
       priority: validatedData.priority,
       status: 'open',
-      assigned_to: validatedData.assignee || null,
+      assigned_to: null, // validatedData.assignee || null,
       description: validatedData.description,
       tags: [],
       attachments: [],
-      created_by: user.id
-    }]);
+      created_by: user?.id || null,
+      notes: ''
+    }]).select();
 
-    if (error) throw error;
+    if (error) {
+      console.error('🔴 Insert error:', error);
+      throw error;
+    }
 
-    showToast('✅ הפנייה נוספה בהצלחה', 'success');
+    showToast('✅ הפנייה נוספה בהצלחה #' + (insertedData?.[0]?.id || '?'), 'success');
     e.target.reset();
-    loadTickets();
+
+    // Reload tickets
+    setTimeout(() => loadTickets(), 500);
+
   } catch (err) {
+    console.error('🔴 Submit error:', err);
     showToast('❌ שגיאה: ' + err.message, 'error');
+  } finally {
+    const submitBtn = e.target?.querySelector('button[type="submit"]');
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = '➕ הוסף פנייה';
+    }
   }
 }
 
 async function loadTickets() {
   try {
+    if (!db) {
+      showToast('❌ חיבור לShרת לא זמין', 'error');
+      return;
+    }
+
+    // Check auth (will use anon if needed)
     const user = await checkAuth();
-    if (!user) return;
 
-    if (!db) return;
-
-    // Load with pagination (limit 50 per request)
-    const { data, error, count } = await db
+    // Load all tickets (no auth requirement for anon key)
+    const { data, error } = await db
       .from('tickets')
-      .select('*', { count: 'exact' })
+      .select('*')
       .order('created_at', { ascending: false })
       .limit(100);
 
-    if (error) throw error;
+    if (error) {
+      console.error('🔴 Database error:', error);
+      showToast('❌ שגיאה בטעינה: ' + error.message, 'error');
+      return;
+    }
 
     allTickets = data || [];
     renderTickets();
 
-    // Show load status
-    if (allTickets.length > 0) {
-      console.log(`📊 Loaded ${allTickets.length} tickets`);
-    }
+    console.log(`✅ Loaded ${allTickets.length} tickets`);
   } catch (err) {
+    console.error('🔴 Load error:', err);
     showToast('❌ שגיאה בטעינה: ' + err.message, 'error');
   }
 }
@@ -1075,10 +1130,10 @@ function viewTicketDetails(ticketId) {
 
 async function updateStatus(event) {
   try {
-    const user = await checkAuth();
-    if (!user) return;
-
-    if (!db) return;
+    if (!db) {
+      showToast('❌ חיבור לשרת לא זמין', 'error');
+      return;
+    }
 
     // Extract ID safely from data attribute
     const button = event.currentTarget || event.target.closest('[data-ticket-id]');
@@ -1089,21 +1144,39 @@ async function updateStatus(event) {
       return;
     }
 
+    const user = await checkAuth();
+
+    // Show loading state
+    const originalText = button.textContent;
+    button.disabled = true;
+    button.textContent = '⏳ עדכון...';
+
     const { error } = await db
       .from('tickets')
       .update({
         status: 'resolved',
         resolved_at: new Date().toISOString(),
-        updated_by: user.id
+        updated_by: user?.id || null
       })
       .eq('id', id);
 
-    if (error) throw error;
+    if (error) {
+      console.error('🔴 Update error:', error);
+      throw error;
+    }
 
-    showToast('✅ הפנייה סגורה', 'success');
-    loadTickets();
+    showToast('✅ הפנייה סגורה #' + id, 'success');
+    setTimeout(() => loadTickets(), 500);
+
   } catch (err) {
+    console.error('🔴 Update error:', err);
     showToast('❌ שגיאה בעדכון: ' + err.message, 'error');
+  } finally {
+    const button = event.currentTarget || event.target.closest('[data-ticket-id]');
+    if (button) {
+      button.disabled = false;
+      button.textContent = '✓ סגור';
+    }
   }
 }
 
@@ -1124,23 +1197,39 @@ function toggleTheme() {
 
 // === INITIALIZATION ===
 function initApp() {
+  console.log('🚀 Initializing TicketIQ...');
+
   // Set theme
   const savedTheme = localStorage.getItem('theme') || 'light';
   document.documentElement.setAttribute('data-theme', savedTheme);
 
-  // Load tickets if DB connected
-  if (db) {
-    loadTickets();
-  } else {
-    showToast('❌ לא ניתן להתחבר לשרת. בדוק את הcredentials בenv.', 'error');
+  // Wait for Supabase to load
+  if (typeof supabase === 'undefined') {
+    console.warn('⏳ Supabase script not loaded yet, retrying...');
+    setTimeout(initApp, 500);
+    return;
   }
+
+  // Verify DB connection
+  if (!db) {
+    console.error('❌ Database not initialized');
+    showToast('❌ חיבור לשרת נכשל - בדוק את ה-credentials', 'error');
+    return;
+  }
+
+  console.log('✅ Supabase connected');
+
+  // Load tickets
+  loadTickets();
 }
 
-// Wait for Supabase script to load
+// Wait for DOM and Supabase script to load
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initApp);
+  document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(initApp, 1000); // Wait for scripts to fully load
+  });
 } else {
-  initApp();
+  setTimeout(initApp, 1000);
 }
 </script>
 
