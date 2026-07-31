@@ -439,10 +439,10 @@
   }
 
   // Initialize on DOM ready
-  document.addEventListener('DOMContentLoaded', initAccessibility);
-
-  // Also run immediately if already loaded
-  if (document.readyState !== 'loading') {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initAccessibility);
+  } else {
+    // Already loaded, run immediately
     initAccessibility();
   }
 

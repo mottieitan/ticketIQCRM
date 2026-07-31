@@ -319,17 +319,17 @@ form:focus-within {
 /* Accessibility menu */
 .accessibility-menu {
   position: fixed;
-  bottom: 80px;
-  right: 20px;
+  top: 100px;
+  left: 20px;
   background: white;
   border-radius: var(--radius-lg);
   box-shadow: var(--elevation-5);
   padding: 0;
   min-width: 200px;
   max-width: 300px;
-  transform-origin: bottom right;
+  transform-origin: top left;
   animation: slideUpMenu 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  z-index: 998;
+  z-index: 9998;
 }
 
 .accessibility-menu.hidden {
@@ -350,14 +350,16 @@ form:focus-within {
 .accessibility-menu button {
   width: 100%;
   border: none;
-  padding: 12px 16px;
+  padding: 14px 16px;
   text-align: right;
-  background: transparent;
+  background: #f3f3f3;
+  color: #000000;
   cursor: pointer;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid #ddd;
   transition: all var(--transform-speed);
-  font-size: 14px;
+  font-size: 15px;
   box-shadow: none;
+  font-weight: 500;
 }
 
 .accessibility-menu button:last-child {
@@ -436,31 +438,67 @@ html[data-text-size="large"] .btn {
 
 /* High contrast mode */
 html[data-high-contrast="true"] {
-  --primary: #0000cc;
-  --accent: #ff0000;
-  --success: #008000;
-  --danger: #cc0000;
-  --warning: #ff6600;
-  --text: #000000;
-  --bg: #ffffff;
+  background: #ffffff !important;
+  color: #000000 !important;
 }
 
-html[data-high-contrast="true"] .card {
-  border: 3px solid #000000;
+html[data-high-contrast="true"] body {
+  background: #ffffff !important;
+  color: #000000 !important;
+}
+
+html[data-high-contrast="true"] .card,
+html[data-high-contrast="true"] section {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: 3px solid #000000 !important;
 }
 
 html[data-high-contrast="true"] button,
 html[data-high-contrast="true"] .btn {
-  border: 2px solid #000000;
+  background: #0000cc !important;
+  color: #ffffff !important;
+  border: 3px solid #000000 !important;
   font-weight: bold;
+}
+
+html[data-high-contrast="true"] button:hover,
+html[data-high-contrast="true"] .btn:hover {
+  background: #ff0000 !important;
+  color: #ffffff !important;
 }
 
 html[data-high-contrast="true"] input,
 html[data-high-contrast="true"] select,
 html[data-high-contrast="true"] textarea {
-  border: 2px solid #000000;
-  background: #ffffff;
-  color: #000000;
+  border: 3px solid #000000 !important;
+  background: #ffffff !important;
+  color: #000000 !important;
+  font-size: 16px;
+}
+
+html[data-high-contrast="true"] .stat-card {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: 3px solid #000000 !important;
+}
+
+html[data-high-contrast="true"] h1,
+html[data-high-contrast="true"] h2,
+html[data-high-contrast="true"] h3 {
+  color: #000000 !important;
+}
+
+html[data-high-contrast="true"] p,
+html[data-high-contrast="true"] span,
+html[data-high-contrast="true"] label {
+  color: #000000 !important;
+}
+
+html[data-high-contrast="true"] .accessibility-menu {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: 3px solid #000000 !important;
 }
 
 /* Mobile adjustments */
@@ -474,11 +512,10 @@ html[data-high-contrast="true"] textarea {
   }
 
   .accessibility-menu {
-    bottom: 64px;
-    right: 16px;
+    top: 80px;
     left: 16px;
     right: auto;
-    transform-origin: bottom left;
+    transform-origin: top left;
   }
 
   .card:hover {
