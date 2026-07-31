@@ -1002,25 +1002,44 @@ async function loadTickets() {
 }
 
 function updateStats() {
+  if (!allTickets || allTickets.length === 0) {
+    console.warn('⚠️ No tickets to calculate stats');
+    return;
+  }
+
   const stats = {
     open: allTickets.filter(t => t.status === 'open').length,
     pending: allTickets.filter(t => t.status === 'pending').length,
-    resolved: allTickets.filter(t => t.status === 'resolved').length,
+    resolved: allTickets.filter(t => t.status === 'resolved' || t.status === 'closed').length,
     total: allTickets.length
   };
 
-  document.getElementById('stat-open').textContent = stats.open;
-  document.getElementById('stat-pending').textContent = stats.pending;
-  document.getElementById('stat-resolved').textContent = stats.resolved;
-  document.getElementById('stat-total').textContent = stats.total;
+  console.log(`📊 Stats Updated:`, stats);
+
+  const statOpen = document.getElementById('stat-open');
+  const statPending = document.getElementById('stat-pending');
+  const statResolved = document.getElementById('stat-resolved');
+  const statTotal = document.getElementById('stat-total');
+
+  if (statOpen) statOpen.textContent = stats.open;
+  if (statPending) statPending.textContent = stats.pending;
+  if (statResolved) statResolved.textContent = stats.resolved;
+  if (statTotal) statTotal.textContent = stats.total;
 }
 
 function renderTickets() {
+  console.log('🔄 Rendering tickets...', { total: allTickets.length, filtered: allTickets.filter(t => currentFilter === 'all' || t.status === currentFilter).length });
+
+  // Update stats FIRST
+  updateStats();
+
   const filtered = allTickets.filter(t => currentFilter === 'all' || t.status === currentFilter);
   const tbody = document.getElementById('ticketsBody');
 
-  // Update stats
-  updateStats();
+  if (!tbody) {
+    console.error('❌ ticketsBody not found');
+    return;
+  }
 
   if (filtered.length === 0) {
     tbody.innerHTML = `
