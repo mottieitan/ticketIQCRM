@@ -544,6 +544,16 @@ html[data-theme="light"] textarea {
 }
 
 /* Font scaling with percentages */
+html[data-font-scale="-2"] {
+  font-size: 8px;
+  --scale: 0.5;
+}
+
+html[data-font-scale="-1"] {
+  font-size: 12px;
+  --scale: 0.75;
+}
+
 html[data-font-scale="0"] {
   font-size: 16px;
   --scale: 1;
@@ -593,6 +603,25 @@ html[data-font-scale="4"] button,
 html[data-font-scale="4"] .btn {
   padding: calc(12px * var(--scale, 1)) calc(16px * var(--scale, 1));
   font-size: calc(14px * var(--scale, 1));
+}
+
+/* Line spacing */
+html[data-line-spacing="true"] {
+  line-height: 2 !important;
+}
+
+html[data-line-spacing="true"] p,
+html[data-line-spacing="true"] div,
+html[data-line-spacing="true"] span,
+html[data-line-spacing="true"] li {
+  line-height: 2 !important;
+}
+
+/* Dyslexia-friendly font */
+html[data-dyslexia-font="true"] {
+  font-family: 'OpenDyslexic', 'Courier New', monospace !important;
+  letter-spacing: 0.08em !important;
+  word-spacing: 0.16em !important;
 }
 
 /* High contrast mode */

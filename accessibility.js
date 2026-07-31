@@ -180,6 +180,8 @@
     menu.setAttribute('role', 'menu');
     menu.innerHTML = `
       <div class="a11y-submenu hidden" id="textsize-submenu">
+        <button type="button" role="menuitem" class="a11y-size-option" data-size="-2" aria-label="גודל טקסט 50%">50%</button>
+        <button type="button" role="menuitem" class="a11y-size-option" data-size="-1" aria-label="גודל טקסט 75%">75%</button>
         <button type="button" role="menuitem" class="a11y-size-option" data-size="0" aria-label="גודל טקסט 100%">100%</button>
         <button type="button" role="menuitem" class="a11y-size-option" data-size="1" aria-label="גודל טקסט 125%">125%</button>
         <button type="button" role="menuitem" class="a11y-size-option" data-size="2" aria-label="גודל טקסט 150%">150%</button>
@@ -194,6 +196,12 @@
       </button>
       <button type="button" role="menuitem" class="a11y-menu-item" data-action="darkmode" aria-label="החלף מצב כהה">
         🌙 מצב כהה
+      </button>
+      <button type="button" role="menuitem" class="a11y-menu-item" data-action="spacing" aria-label="הגדל רווח בין שורות">
+        ↕️ רווח שורות
+      </button>
+      <button type="button" role="menuitem" class="a11y-menu-item" data-action="dyslexia" aria-label="קו לקראת דיסלקסיה">
+        📖 דיסלקסיה
       </button>
       <button type="button" role="menuitem" class="a11y-menu-item" data-action="focus" aria-label="דלג לתוכן ראשי">
         ⚡ לתוכן ראשי
@@ -251,6 +259,12 @@
             break;
           case 'darkmode':
             toggleDarkMode();
+            break;
+          case 'spacing':
+            toggleLineSpacing();
+            break;
+          case 'dyslexia':
+            toggleDyslexiaFont();
             break;
           case 'focus':
             focusMainContent();
@@ -324,6 +338,26 @@
       main.scrollIntoView({ behavior: 'smooth' });
       window.TicketIQAccessibility?.announceToScreenReader('העברה לתוכן ראשי');
     }
+  };
+
+  window.toggleLineSpacing = function() {
+    const html = document.documentElement;
+    const current = html.getAttribute('data-line-spacing') === 'true';
+    html.setAttribute('data-line-spacing', !current);
+    localStorage.setItem('lineSpacing', !current);
+    window.TicketIQAccessibility?.announceToScreenReader(
+      !current ? 'רווח שורות הוגדל' : 'רווח שורות חזר לנורמלי'
+    );
+  };
+
+  window.toggleDyslexiaFont = function() {
+    const html = document.documentElement;
+    const current = html.getAttribute('data-dyslexia-font') === 'true';
+    html.setAttribute('data-dyslexia-font', !current);
+    localStorage.setItem('dyslexiaFont', !current);
+    window.TicketIQAccessibility?.announceToScreenReader(
+      !current ? 'פונט קו לקראת דיסלקסיה הופעל' : 'פונט קו לקראת דיסלקסיה הושבת'
+    );
   };
 
   // Skip to Main Content Link

@@ -776,10 +776,29 @@ html[data-theme="dark"] {
   </div>
 
   <div class="card slide-in-right">
+    <div style="margin-bottom: 1rem; display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
+      <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+        <input type="checkbox" id="selectAllTickets" onchange="toggleSelectAll(this.checked)" style="width: 18px; height: 18px; cursor: pointer;">
+        <span>בחר הכל</span>
+      </label>
+      <span id="selectedCount" style="color: var(--text-light);">בחר 0</span>
+
+      <div style="border-left: 1px solid var(--border); height: 24px; margin: 0 0.5rem;"></div>
+
+      <select id="bulkStatusSelect" style="padding: 0.5rem; border: 1px solid var(--border); border-radius: var(--radius-sm);">
+        <option value="">בחר סטטוס...</option>
+        <option value="פתוח">פתוח</option>
+        <option value="בטיפול">בטיפול</option>
+        <option value="סגור">סגור</option>
+      </select>
+      <button class="btn btn-sm btn-primary" onclick="applyBulkStatusUpdate()">עדכן סטטוס</button>
+      <button class="btn btn-sm btn-secondary" onclick="clearBulkSelection()">נקה בחירה</button>
+    </div>
     <div class="tickets-table-wrapper">
       <table id="ticketsTable">
         <thead>
           <tr>
+            <th style="width: 30px;"></th>
             <th>לקוח</th>
             <th>נושא</th>
             <th>קטגוריה</th>
@@ -1154,6 +1173,9 @@ function renderTickets() {
 
     return `
       <tr data-ticket-id="${t.id}" style="cursor: pointer; transition: var(--transition);" onmouseover="this.style.backgroundColor='var(--primary-light)'" onmouseout="this.style.backgroundColor=''">
+        <td style="width: 30px;">
+          <input type="checkbox" class="ticket-checkbox" data-ticket-id="${t.id}" onchange="updateSelectedCount()" style="width: 18px; height: 18px; cursor: pointer;">
+        </td>
         <td onclick="viewTicketDetails(${t.id})" style="cursor: pointer;">
           <div style="font-weight: 600;">${sanitizeHTML(t.customer_name)}</div>
           <small style="color: var(--text-light);">📞 ${sanitizeHTML(t.customer_phone || 'אין')}</small>
@@ -1383,6 +1405,113 @@ async function deleteTicket(ticketId) {
     console.error('🔴 Delete error:', err.message || err);
     showToast('❌ שגיאה במחיקה: ' + (err.message || JSON.stringify(err)), 'error');
   }
+}
+
+// Bulk operations
+function toggleSelectAll(checked) {
+  document.querySelectorAll('.ticket-checkbox').forEach(checkbox => {
+    checkbox.checked = checked;
+  });
+  updateSelectedCount();
+}
+
+function updateSelectedCount() {
+  const selected = document.querySelectorAll('.ticket-checkbox:checked').length;
+  const total = document.querySelectorAll('.ticket-checkbox').length;
+  document.getElementById('selectedCount').textContent = `בחר ${selected}`;
+
+  // Uncheck "Select All" if not all are selected
+  if (selected < total) {
+    document.getElementById('selectAllTickets').checked = false;
+  } else if (selected === total && total > 0) {
+    document.getElementById('selectAllTickets').checked = true;
+  }
+}
+
+async function applyBulkStatusUpdate() {
+  const selectedCheckboxes = document.querySelectorAll('.ticket-checkbox:checked');
+  const newStatus = document.getElementById('bulkStatusSelect').value;
+
+  if (!newStatus) {
+    showToast('❌ בחר סטטוס', 'error');
+    return;
+  }
+
+  if (selectedCheckboxes.length === 0) {
+    showToast('❌ בחר פניות לעדכון', 'error');
+    return;
+  }
+
+  // Confirmation
+  const confirmModal = document.createElement('div');
+  confirmModal.className = 'modal-overlay active';
+  confirmModal.innerHTML = `
+    <div class="modal" style="max-width: 500px; text-align: center;">
+      <h3 style="margin-bottom: 1rem;">⚠️ אישור עדכון</h3>
+      <p style="font-size: 1.1rem; margin-bottom: 1.5rem;">
+        האם אתה בטוח שברצונך לעדכן ${selectedCheckboxes.length} פניות לסטטוס <strong>${newStatus}</strong>?
+      </p>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <button class="btn btn-secondary" onclick="this.closest('.modal-overlay').remove()">
+          ❌ בטל
+        </button>
+        <button class="btn btn-primary" onclick="confirmBulkUpdate('${newStatus}'); this.closest('.modal-overlay').remove();">
+          ✓ אישור עדכון
+        </button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(confirmModal);
+  confirmModal.addEventListener('click', (e) => {
+    if (e.target === confirmModal) confirmModal.remove();
+  });
+}
+
+async function confirmBulkUpdate(newStatus) {
+  try {
+    if (!db) {
+      showToast('❌ חיבור לשרת לא זמין', 'error');
+      return;
+    }
+
+    const selectedCheckboxes = document.querySelectorAll('.ticket-checkbox:checked');
+    const ticketIds = Array.from(selectedCheckboxes).map(cb => parseInt(cb.dataset.ticketId));
+
+    if (ticketIds.length === 0) return;
+
+    console.log('🔄 Updating', ticketIds.length, 'tickets to', newStatus);
+
+    const updateData = { status: newStatus };
+    if (newStatus === 'סגור') {
+      updateData.resolved_at = new Date().toISOString();
+    } else if (newStatus === 'פתוח') {
+      updateData.resolved_at = null;
+    }
+
+    // Update all selected tickets
+    const { error } = await db
+      .from('tickets')
+      .update(updateData)
+      .in('id', ticketIds);
+
+    if (error) throw new Error(error.message);
+
+    showToast(`✅ ${ticketIds.length} פניות עודכנו ל${newStatus}`, 'success');
+    clearBulkSelection();
+    setTimeout(() => loadTickets(), 500);
+
+  } catch (err) {
+    console.error('🔴 Bulk update error:', err.message);
+    showToast('❌ שגיאה בעדכון: ' + err.message, 'error');
+  }
+}
+
+function clearBulkSelection() {
+  document.querySelectorAll('.ticket-checkbox').forEach(cb => cb.checked = false);
+  document.getElementById('selectAllTickets').checked = false;
+  document.getElementById('bulkStatusSelect').value = '';
+  updateSelectedCount();
 }
 
 async function updateStatus(event) {
