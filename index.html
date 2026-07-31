@@ -966,7 +966,7 @@ async function handleSubmit(e) {
     submitBtn.disabled = true;
     submitBtn.textContent = '⏳ שליחה...';
 
-    const { data: insertedData, error } = await db.from('tickets').insert([{
+    const { error } = await db.from('tickets').insert([{
       customer_name: validatedData.customer,
       customer_phone: validatedData.phone,
       customer_email: user?.email || 'anonymous@ticketiq.local',
@@ -978,24 +978,30 @@ async function handleSubmit(e) {
       description: validatedData.description,
       tags: [],
       attachments: [],
-      created_by: user?.id || null,
+      // Note: created_by NOT included - anonymous users don't have team_members entry
       notes: ''
-    }]).select();
+    }]);
 
     if (error) {
-      console.error('🔴 Insert error:', error);
-      throw error;
+      console.error('🔴 Insert error details:', {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+        fullError: JSON.stringify(error)
+      });
+      throw new Error(`Insert failed: ${error.message || JSON.stringify(error)}`);
     }
 
-    showToast('✅ הפנייה נוספה בהצלחה #' + (insertedData?.[0]?.id || '?'), 'success');
+    showToast('✅ הפנייה נוספה בהצלחה', 'success');
     e.target.reset();
 
     // Reload tickets
     setTimeout(() => loadTickets(), 500);
 
   } catch (err) {
-    console.error('🔴 Submit error:', err);
-    showToast('❌ שגיאה: ' + err.message, 'error');
+    console.error('🔴 Submit error details:', err.message || err);
+    showToast('❌ שגיאה: ' + (err.message || JSON.stringify(err)), 'error');
   } finally {
     const submitBtn = e.target?.querySelector('button[type="submit"]');
     if (submitBtn) {
@@ -1235,8 +1241,8 @@ async function updateStatus(event) {
       .from('tickets')
       .update({
         status: 'סגור', // Use Hebrew status
-        resolved_at: new Date().toISOString(),
-        updated_by: user?.id || null
+        resolved_at: new Date().toISOString()
+        // Note: updated_by NOT included - anonymous users don't have team_members entry
       })
       .eq('id', id);
 
