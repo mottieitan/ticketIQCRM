@@ -809,7 +809,18 @@ html[data-theme="dark"] {
 <section class="section">
   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
     <h2>📋 פניות בעיבוד</h2>
-    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
+      <select id="sortDropdown" onchange="sortTickets(this.value)" style="padding: 0.5rem 1rem; border: 1px solid var(--border); border-radius: var(--radius-md); background: white; color: var(--text); font-size: 0.9rem;">
+        <option value="">🔀 סדר ברירת מחדל</option>
+        <option value="name-asc">👤 שם (א-ת)</option>
+        <option value="name-desc">👤 שם (ת-א)</option>
+        <option value="date-new">📅 חדש ביותר</option>
+        <option value="date-old">📅 ישן ביותר</option>
+        <option value="priority-high">⚡ עדיפות גבוהה</option>
+        <option value="priority-low">💤 עדיפות נמוכה</option>
+        <option value="status">🔀 סטטוס</option>
+        <option value="category">📂 קטגוריה</option>
+      </select>
       <button class="btn btn-sm btn-primary filter-btn" onclick="filterTickets('all')">📊 הכל</button>
       <button class="btn btn-sm btn-secondary filter-btn" onclick="filterTickets('פתוח')">🔴 פתוחות</button>
       <button class="btn btn-sm btn-secondary filter-btn" onclick="filterTickets('בטיפול')">⚠️ בטיפול</button>
@@ -885,6 +896,7 @@ const db = SUPABASE_URL && SUPABASE_KEY ? supabase?.createClient(SUPABASE_URL, S
 
 let allTickets = [];
 let currentFilter = 'all';
+let currentSort = '';
 let currentUser = null;
 
 // === INPUT VALIDATION ===
@@ -1179,7 +1191,8 @@ function renderTickets() {
   // Update stats FIRST
   updateStats();
 
-  const filtered = allTickets.filter(t => currentFilter === 'all' || t.status === currentFilter);
+  let filtered = allTickets.filter(t => currentFilter === 'all' || t.status === currentFilter);
+  filtered = getSortedTickets(filtered);
   const tbody = document.getElementById('ticketsBody');
 
   if (!tbody) {
@@ -1259,6 +1272,48 @@ function filterTickets(filter) {
   event.target.classList.add('btn-primary');
 
   renderTickets();
+}
+
+function sortTickets(sortOption) {
+  currentSort = sortOption;
+  renderTickets();
+}
+
+function getSortedTickets(tickets) {
+  if (!currentSort) return tickets;
+
+  const sorted = [...tickets];
+
+  switch(currentSort) {
+    case 'name-asc':
+      sorted.sort((a, b) => (a.customer_name || '').localeCompare(b.customer_name || '', 'he'));
+      break;
+    case 'name-desc':
+      sorted.sort((a, b) => (b.customer_name || '').localeCompare(a.customer_name || '', 'he'));
+      break;
+    case 'date-new':
+      sorted.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      break;
+    case 'date-old':
+      sorted.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+      break;
+    case 'priority-high':
+      const priorityOrder = { 'high': 1, 'medium': 2, 'low': 3 };
+      sorted.sort((a, b) => (priorityOrder[a.priority] || 999) - (priorityOrder[b.priority] || 999));
+      break;
+    case 'priority-low':
+      const priorityOrderReverse = { 'low': 1, 'medium': 2, 'high': 3 };
+      sorted.sort((a, b) => (priorityOrderReverse[a.priority] || 999) - (priorityOrderReverse[b.priority] || 999));
+      break;
+    case 'status':
+      sorted.sort((a, b) => (a.status || '').localeCompare(b.status || '', 'he'));
+      break;
+    case 'category':
+      sorted.sort((a, b) => (a.category || '').localeCompare(b.category || '', 'he'));
+      break;
+  }
+
+  return sorted;
 }
 
 function viewTicketDetails(ticketId) {

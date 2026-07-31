@@ -837,6 +837,25 @@ html[data-high-contrast="true"] .accessibility-menu {
   color: var(--text);
 }
 
+.form-group select option {
+  background-color: white;
+  color: var(--text);
+  padding: 0.5rem;
+  line-height: 1.5;
+}
+
+.form-group select option:hover {
+  background: linear-gradient(var(--primary), var(--primary));
+  background-color: var(--primary) !important;
+  color: white !important;
+}
+
+.form-group select option:checked {
+  background: linear-gradient(var(--primary), var(--primary));
+  background-color: var(--primary) !important;
+  color: white !important;
+}
+
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
