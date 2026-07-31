@@ -200,7 +200,7 @@ header {
 /* Form Elements */
 input, select, textarea, button {
   font: inherit;
-  border: 1px solid var(--border);
+  border: 2px solid var(--border);
   border-radius: var(--radius-md);
   padding: calc(var(--grid) * 1) calc(var(--grid) * 1.5);
   background: var(--card-bg);
@@ -210,19 +210,31 @@ input, select, textarea, button {
 
 input::placeholder, textarea::placeholder {
   color: var(--text-light);
+  opacity: 0.7;
 }
 
 input:focus, select:focus, textarea:focus {
   border-color: var(--primary);
-  box-shadow: var(--focus-ring);
+  box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.15);
+  background: var(--card-bg);
 }
 
 input:invalid {
   border-color: var(--danger);
+  box-shadow: 0 0 0 4px rgba(225, 29, 72, 0.1);
 }
 
 input:valid:not(:placeholder-shown) {
   border-color: var(--success);
+  box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.1);
+}
+
+label {
+  display: block;
+  margin-bottom: calc(var(--grid) * 0.5);
+  font-weight: 600;
+  color: var(--text);
+  font-size: 0.9rem;
 }
 
 textarea {
@@ -477,22 +489,52 @@ table {
 }
 
 thead {
-  background: var(--primary-light);
+  background: linear-gradient(135deg, var(--primary-light) 0%, rgba(124, 58, 237, 0.05) 100%);
   font-weight: 600;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 th, td {
-  padding: calc(var(--grid) * 1) calc(var(--grid) * 1.5);
+  padding: calc(var(--grid) * 1.25) calc(var(--grid) * 1.5);
   text-align: right;
   border-bottom: 1px solid var(--border);
+  transition: var(--transition);
+}
+
+th {
+  font-weight: 700;
+  color: var(--primary);
+}
+
+tbody tr {
+  transition: var(--transition);
+  border-left: 3px solid transparent;
 }
 
 tbody tr:hover {
   background: var(--primary-light);
+  border-left-color: var(--primary);
+  box-shadow: inset 0 0 0 1px rgba(124, 58, 237, 0.1);
 }
 
 tbody tr:focus-within {
   outline: 2px solid var(--primary);
+  outline-offset: -1px;
+}
+
+/* Row status indicators */
+tbody tr[data-status="open"] {
+  border-left-color: var(--danger);
+}
+
+tbody tr[data-status="pending"] {
+  border-left-color: var(--warning);
+}
+
+tbody tr[data-status="resolved"] {
+  border-left-color: var(--success);
 }
 
 /* PHASE 6: Mobile First */
@@ -559,23 +601,23 @@ html[data-theme="dark"] {
 </section>
 
 <section class="section">
-  <h2>סטטיסטיקות ראשיות</h2>
+  <h2>📊 סטטיסטיקות בזמן אמת</h2>
   <div class="grid">
     <div class="stat-card">
-      <div class="stat-value">24</div>
-      <div class="stat-label">שעות - זמן תגובה ממוצע</div>
+      <div class="stat-value" id="stat-open">0</div>
+      <div class="stat-label">🔴 פתוחות</div>
     </div>
     <div class="stat-card">
-      <div class="stat-value">94%</div>
-      <div class="stat-label">שביעות רצון</div>
+      <div class="stat-value" id="stat-pending">0</div>
+      <div class="stat-label">⚠️ בטיפול</div>
     </div>
     <div class="stat-card">
-      <div class="stat-value">156</div>
-      <div class="stat-label">פניות פתוחות</div>
+      <div class="stat-value" id="stat-resolved">0</div>
+      <div class="stat-label">✅ פתורות</div>
     </div>
     <div class="stat-card">
-      <div class="stat-value">1.2 ימים</div>
-      <div class="stat-label">זמן פתרון ממוצע</div>
+      <div class="stat-value" id="stat-total">0</div>
+      <div class="stat-label">📈 סה"כ</div>
     </div>
   </div>
 </section>
@@ -640,12 +682,12 @@ html[data-theme="dark"] {
 
 <section class="section">
   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
-    <h2>פניות בעיבוד</h2>
+    <h2>📋 פניות בעיבוד</h2>
     <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-      <button class="btn btn-sm btn-secondary" onclick="filterTickets('all')">הכל</button>
-      <button class="btn btn-sm btn-secondary" onclick="filterTickets('open')">פתוחות</button>
-      <button class="btn btn-sm btn-secondary" onclick="filterTickets('pending')">בטיפול</button>
-      <button class="btn btn-sm btn-secondary" onclick="filterTickets('resolved')">פתורות</button>
+      <button class="btn btn-sm btn-primary filter-btn" onclick="filterTickets('all')">📊 הכל</button>
+      <button class="btn btn-sm btn-secondary filter-btn" onclick="filterTickets('open')">🔴 פתוחות</button>
+      <button class="btn btn-sm btn-secondary filter-btn" onclick="filterTickets('pending')">⚠️ בטיפול</button>
+      <button class="btn btn-sm btn-secondary filter-btn" onclick="filterTickets('resolved')">✅ פתורות</button>
     </div>
   </div>
 
@@ -825,43 +867,133 @@ async function loadTickets() {
   }
 }
 
+function updateStats() {
+  const stats = {
+    open: allTickets.filter(t => t.status === 'open').length,
+    pending: allTickets.filter(t => t.status === 'pending').length,
+    resolved: allTickets.filter(t => t.status === 'resolved').length,
+    total: allTickets.length
+  };
+
+  document.getElementById('stat-open').textContent = stats.open;
+  document.getElementById('stat-pending').textContent = stats.pending;
+  document.getElementById('stat-resolved').textContent = stats.resolved;
+  document.getElementById('stat-total').textContent = stats.total;
+}
+
 function renderTickets() {
   const filtered = allTickets.filter(t => currentFilter === 'all' || t.status === currentFilter);
   const tbody = document.getElementById('ticketsBody');
 
+  // Update stats
+  updateStats();
+
   if (filtered.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="7" class="empty-state"><div class="empty-state-icon">📭</div><p>אין פניות</p></td></tr>';
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="7" class="empty-state">
+          <div class="empty-state-icon">📭</div>
+          <p>אין פניות להצגה</p>
+          <small>${currentFilter === 'all' ? 'הוסף פנייה כדי להתחיל' : 'אין פניות במצב זה'}</small>
+        </td>
+      </tr>
+    `;
     return;
   }
 
-  tbody.innerHTML = filtered.map(t => `
-    <tr data-ticket-id="${t.id}">
-      <td>
-        <div>${sanitizeHTML(t.customer_name)}</div>
-        <small style="color: var(--text-light);">${sanitizeHTML(t.customer_phone || '')}</small>
-      </td>
-      <td>${sanitizeHTML(t.subject)}</td>
-      <td><span class="badge badge-primary">${sanitizeHTML(t.category)}</span></td>
-      <td><span class="badge badge-${t.priority === 'high' ? 'danger' : t.priority === 'medium' ? 'warning' : 'success'}">${t.priority}</span></td>
-      <td>${t.status}</td>
-      <td>${new Date(t.created_at).toLocaleDateString('he-IL')}</td>
-      <td>
-        <button class="btn btn-sm btn-danger" data-ticket-id="${t.id}" onclick="updateStatus(event)">
-          ✓ סגור
-        </button>
-      </td>
-    </tr>
-  `).join('');
+  tbody.innerHTML = filtered.map(t => {
+    const statusEmoji = {
+      'open': '🔴',
+      'pending': '⚠️',
+      'resolved': '✅',
+      'closed': '⭕'
+    }[t.status] || '❓';
 
-  // Add event delegation for buttons
-  document.querySelectorAll('[data-ticket-id]').forEach(btn => {
-    btn.addEventListener('click', updateStatus);
-  });
+    const priorityEmoji = {
+      'high': '🔥',
+      'medium': '📌',
+      'low': '💤'
+    }[t.priority] || '📍';
+
+    return `
+      <tr data-ticket-id="${t.id}" style="cursor: pointer; transition: var(--transition);" onmouseover="this.style.backgroundColor='var(--primary-light)'" onmouseout="this.style.backgroundColor=''">
+        <td onclick="viewTicketDetails(${t.id})" style="cursor: pointer;">
+          <div style="font-weight: 600;">${sanitizeHTML(t.customer_name)}</div>
+          <small style="color: var(--text-light);">📞 ${sanitizeHTML(t.customer_phone || 'אין')}</small>
+        </td>
+        <td onclick="viewTicketDetails(${t.id})" style="cursor: pointer;">
+          <div>${sanitizeHTML(t.subject.substring(0, 40))}${t.subject.length > 40 ? '...' : ''}</div>
+          <small style="color: var(--text-light);">#${t.id}</small>
+        </td>
+        <td><span class="badge badge-primary">${sanitizeHTML(t.category)}</span></td>
+        <td><span style="font-size: 1.2em; margin-left: 0.5rem;">${priorityEmoji}</span> ${t.priority}</td>
+        <td><span style="font-size: 1.2em; margin-left: 0.5rem;">${statusEmoji}</span> ${t.status}</td>
+        <td>
+          <small>${new Date(t.created_at).toLocaleDateString('he-IL')}</small>
+          <br>
+          <small style="color: var(--text-light);">${new Date(t.created_at).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}</small>
+        </td>
+        <td>
+          <button class="btn btn-sm btn-secondary" onclick="viewTicketDetails(${t.id})" style="margin-bottom: 0.5rem;">👁️ צפה</button>
+          ${t.status !== 'resolved' && t.status !== 'closed' ? `<button class="btn btn-sm btn-danger" data-ticket-id="${t.id}" onclick="updateStatus(event)" style="width: 100%;">✓ סגור</button>` : '<small style="color: var(--success);">סגור</small>'}
+        </td>
+      </tr>
+    `;
+  }).join('');
 }
 
 function filterTickets(filter) {
   currentFilter = filter;
+
+  // Update button styles
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.classList.remove('btn-primary');
+    btn.classList.add('btn-secondary');
+  });
+  event.target.classList.remove('btn-secondary');
+  event.target.classList.add('btn-primary');
+
   renderTickets();
+}
+
+function viewTicketDetails(ticketId) {
+  const ticket = allTickets.find(t => t.id === ticketId);
+  if (!ticket) return;
+
+  const priorityEmoji = {
+    'high': '🔥',
+    'medium': '📌',
+    'low': '💤'
+  }[ticket.priority] || '📍';
+
+  const statusEmoji = {
+    'open': '🔴',
+    'pending': '⚠️',
+    'resolved': '✅',
+    'closed': '⭕'
+  }[ticket.status] || '❓';
+
+  const details = `
+    <h3>${sanitizeHTML(ticket.subject)}</h3>
+    <div style="display: grid; gap: 1rem; margin: 1.5rem 0;">
+      <div><strong>🆔 מזהה:</strong> #${ticket.id}</div>
+      <div><strong>👤 לקוח:</strong> ${sanitizeHTML(ticket.customer_name)}</div>
+      <div><strong>📞 טלפון:</strong> ${sanitizeHTML(ticket.customer_phone || 'לא מצוין')}</div>
+      <div><strong>📧 מייל:</strong> ${sanitizeHTML(ticket.customer_email || 'לא מצוין')}</div>
+      <div><strong>📂 קטגוריה:</strong> ${sanitizeHTML(ticket.category)}</div>
+      <div><strong>⚡ עדיפות:</strong> ${priorityEmoji} ${ticket.priority}</div>
+      <div><strong>📍 סטטוס:</strong> ${statusEmoji} ${ticket.status}</div>
+      <div><strong>📅 תאריך יצירה:</strong> ${new Date(ticket.created_at).toLocaleString('he-IL')}</div>
+      <div><strong>📝 תיאור:</strong></div>
+      <div style="background: var(--primary-light); padding: 1rem; border-radius: var(--radius-md); white-space: pre-wrap;">
+        ${sanitizeHTML(ticket.description || 'אין תיאור')}
+      </div>
+      ${ticket.resolved_at ? `<div><strong>✅ סגור ב:</strong> ${new Date(ticket.resolved_at).toLocaleString('he-IL')}</div>` : ''}
+      ${ticket.notes ? `<div><strong>📌 הערות:</strong> ${sanitizeHTML(ticket.notes)}</div>` : ''}
+    </div>
+  `;
+
+  alert(details);
 }
 
 async function updateStatus(event) {
