@@ -411,9 +411,37 @@ form:focus-within {
   .card,
   button,
   input,
-  .accessibility-button {
+  .accessibility-button,
+  .accessibility-menu {
     transform: none !important;
+    animation: none !important;
   }
+}
+
+/* Enhanced focus indicators for WCAG AAA compliance */
+button:focus-visible,
+.btn:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 4px solid #0000cc;
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* Accessibility menu high contrast */
+html[data-high-contrast="true"] .accessibility-menu {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: 3px solid #000000 !important;
+  box-shadow: 0 0 0 2px #000000 !important;
+}
+
+html[data-high-contrast="true"] .accessibility-menu button {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: 2px solid #000000 !important;
 }
 
 /* Large text size */
